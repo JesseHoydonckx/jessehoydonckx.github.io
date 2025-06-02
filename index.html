@@ -294,28 +294,226 @@
     <script>
         // Quiz Data
         const quizData = [
-            // Audio questions
-            {
+        // Audio questions
+            // Rock
+            { // Aerosmith - Dream on
                 type: "audio",
-                audioSrc: "https://freemusicarchive.org/music/art-flower/lets-rock/art-flower-gitano-waltz/",
-                question: "Listen to this 10-second audio clip. Which era does this song belong to?",
-                options: ["1960s", "1980s", "2000s", "2020s"],
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/Aerosmith-DreamOn.mp3",
+                question: "Which era does this rock song belong to?",
+                options: ["1960s", "1970s", "1980s", "1990s"],
+                correctAnswer: "1970s",
+                explanation: "The song features powerful rock ballad vocals and piano-driven instrumentation, hallmarks of 1970s classic rock.",
+                genre: "Rock",
+                era: "1970s"
+            },
+            { // Queen - Bohemian Rhapsody
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/Queen-BohemianRhapsody.mp3",
+                question: "Which era does this rock song belong to?",
+                options: ["1960s", "1970s", "1980s", "1990s"],
+                correctAnswer: "1970s",
+                explanation: "Bohemian Rhapsody's operatic segments, guitar solos, and genre-blending make it an iconic example of 1970s progressive rock.",
+                genre: "Rock",
+                era: "1970s"
+            },
+            { // Nirvana - Smell like teen spirit
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/Nirvana-SmellsLikeTeenSpirit.mp3",
+                question: "Which era does this rock song belong to?",
+                options: ["1960s", "1970s", "1980s", "1990s"],
+                correctAnswer: "1990s",
+                explanation: "This track launched grunge into the mainstream with raw guitar tones, angst-driven lyrics, and minimal production typical of 1990s alternative rock.",
+                genre: "Rock",
+                era: "1970s"
+            },
+            // Hip-Hop
+            { // Tupac - California Love
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/Tupac-CaliforniaLove.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1980s", "1990s", "2000s", "2010s"],
+                correctAnswer: "1990s",
+                explanation: "G-funk beats, West Coast synths, and the dual delivery of Tupac and Dr. Dre reflect the defining sounds of 1990s hip-hop.",
+                genre: "Hip-Hop",
+                era: "1990s"
+            },
+            { // Eminem - Lose Yourself
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/Eminem-LoseYourself.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1980s", "1990s", "2000s", "2010s"],
+                correctAnswer: "2000s",
+                explanation: "G-funk beats, West Coast synths, and the dual delivery of Tupac and Dr. Dre reflect the defining sounds of 1990s hip-hop.",
+                genre: "Hip-Hop",
+                era: "2000s"
+            },
+            { // Grandmaster Flash - The Message
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/GrandmasterFlash-TheMessage.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1980s", "1990s", "2000s", "2010s"],
                 correctAnswer: "1980s",
-                explanation: "This song features the distinctive synthesizer sounds that were popular in 1980s pop music.",
+                explanation: "One of the first socially conscious rap songs, its minimalist beat and street-reporting lyrics represent early 1980s hip-hop roots.",
+                genre: "Hip-Hop",
+                era: "1980s"
+            },
+            // Pop
+            { // Micheal Jackson - Billy Jean
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/MichaelJackson-BillieJean.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1980s", "1990s", "2000s", "2010s"],
+                correctAnswer: "1980s",
+                explanation: "The iconic bassline, polished production, and dance rhythms reflect the peak of 1980s pop music.",
                 genre: "Pop",
                 era: "1980s"
             },
-            {
+            { // Britney Spears - Baby One More Time
                 type: "audio",
-                audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-                question: "What genre best describes this musical excerpt?",
-                options: ["Jazz", "Blues", "Rock", "Classical"],
-                correctAnswer: "Jazz",
-                explanation: "The improvisational nature and swing rhythm are characteristic of jazz music.",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/BritneySpears-BabyOneMoreTime.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1990s", "2000s", "2010s", "2020s"],
+                correctAnswer: "1990s",
+                explanation: "This debut hit blends catchy melodies with heavy production typical of late 1990s teen pop.",
+                genre: "Pop",
+                era: "1990s"
+            },
+            { // Dua Lipa - Levitating
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/DuaLipa-Levitating.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1990s", "2000s", "2010s", "2020s"],
+                correctAnswer: "1990s",
+                explanation: "With its retro-disco influence, synth layers, and modern vocal mixing, this song exemplifies early 2020s pop revival trends.",
+                genre: "Pop",
+                era: "2020s"
+            },
+            // Jazz
+            { // Miles David - So What
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/MilesDavis-SoWhat.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1950s", "1960", "1970s", "1980s"],
+                correctAnswer: "1950s",
+                explanation: "This modal jazz classic uses minimal chord changes and cool improvisation, reflecting 1950s jazz innovation.",
                 genre: "Jazz",
                 era: "1950s"
             },
-            // Context questions
+            { // John Coltrane - Giant Steps
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/JohnColtrane-GiantSteps.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1950s", "1960", "1970s", "1980s"],
+                correctAnswer: "1960s",
+                explanation: "A technical masterpiece with rapid chord changes and complex solos, capturing the adventurous spirit of 1960s jazz.",
+                genre: "Jazz",
+                era:"1960s"
+            },
+            { // Diana Krall - The Look of Love
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/DianaKrall-TheLookOfLove.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1980s", "1990s", "2000s", "2010s"],
+                correctAnswer: "2000s",
+                explanation: "This smooth jazz ballad features laid-back piano and lush orchestration typical of modern jazz recordings from the 2000s.",
+                genre: "Jazz",
+                era: "2000s"
+            },
+            // Blues
+            { // BBKing - The thrill is gone
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/BBKing-TheThrillIsGone.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1950s", "1960", "1970s", "1980s"],
+                correctAnswer: "1960s",
+                explanation: "With its slow tempo, soulful guitar licks, and orchestral backing, this blues classic typifies late 1960s electric blues.",
+                genre: "Blues",
+                era: "1960s"
+            },
+            { // Muddy Waters - Mojo Working
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/MuddyWaters-MojoWorking.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1950s", "1960", "1970s", "1980s"],
+                correctAnswer: "1950s",
+                explanation: "This song captures the upbeat tempo and raw vocal style of 1950s Chicago blues.",
+                genre: "Blues",
+                era: "1950s"
+            },
+            { // Gary Clark Jr. - Bright lights 
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/GaryClarkJr-BrightLights.mp3",
+                question: "Which era does this song belong to?",
+                options: ["1980s", "1990s", "2000s", "2010s"],
+                correctAnswer: "2010s",
+                explanation: "Fusing blues tradition with modern rock and fuzz guitar, this track showcases 2010s blues revivalism.",
+                genre: "Blues",
+                era: "2010s"
+            },
+            // Disco
+            { // Chic - Le Freak
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/Chic-LeFreak.mp3",
+                question: "Which era does this song belong to?",
+                options: [ "1970s", "1980s", "1990s", "2000s"],
+                correctAnswer: "1970s",
+                explanation: "This track features funky guitar riffs, four-on-the-floor beats, and dance floor energy characteristic of 1970s disco.",
+                genre: "Disco",
+                era: "1970s"
+            },
+            { // James Brown - Sex Machine
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/JamesBrown-SexMachine.mp3",
+                question: "Which era does this song belong to?",
+                options: [ "1970s", "1980s", "1990s", "2000s"],
+                correctAnswer: "1970s",
+                explanation: "Driven by syncopated rhythm and minimal chords, this is a definitive example of 1970s funk.",
+                genre: "Funk",
+                era: "1970s"
+            },
+            { // Bruno Mars - Uptown Funk
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/BrunoMars-UptownFunk.mp3",
+                question: "Which era does this song belong to?",
+                options: [ "1980s", "1990s", "2000s", "2010s"],
+                correctAnswer: "2010s",
+                explanation: "Inspired by retro funk but with modern production, this 2010s hit pays homage to the genre with brass hooks and groove-heavy bass.",
+                genre: "Funk",
+                era: "2010s"
+            },
+            // Reggae,
+            { // Bob Marley - No woman no cry
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/BobMarley-NoWomanNoCry.mp3",
+                question: "Which era does this song belong to?",
+                options: [ "1970s", "1980s", "1990s", "2000s"],
+                correctAnswer: "1970s",
+                explanation: "This song's offbeat rhythm and spiritual lyrics embody the roots reggae movement of the 1970s.",
+                genre: "Reggae",
+                era: "1970s"
+            },
+            { // Toots - Pressure drop
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/Toots-PressureDrop.mp3",
+                question: "Which era does this song belong to?",
+                options: [ "1970s", "1980s", "1990s", "2000s"],
+                correctAnswer: "1970s",
+                explanation: "Upbeat tempo and soul-influenced vocals made this one of the most influential early reggae tracks.",
+                genre: "Reggae",
+                era: "1970s"
+            },
+            { // Protoje - Who knows
+                type: "audio",
+                audioSrc: "https://raw.githubusercontent.com/JesseHoydonckx/jessehoydonckx.github.io/main/audio/Protoje-WhoKnows.mp3",
+                question: "Which era does this song belong to?",
+                options: [ "1980s", "1990s", "2000s", "2010s"],
+                correctAnswer: "2010s",
+                explanation: "This modern reggae hit blends traditional rhythms with smooth vocal production typical of 2010s revival roots.",
+                genre: "Reggae",
+                era: "2010s"
+            },
+
+        // Context questions
             {
                 type: "context",
                 question: "Which instrument became a defining sound of rock music in the 1960s?",
@@ -344,16 +542,6 @@
                 era: "2000s"
             },
             {
-                type: "audio",
-                audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-                question: "This musical style originated in which decade?",
-                options: ["1920s", "1940s", "1960s", "1980s"],
-                correctAnswer: "1920s",
-                explanation: "This early jazz style with its distinctive rhythms was popular in the 1920s, often called the Jazz Age.",
-                genre: "Jazz",
-                era: "1920s"
-            },
-            {
                 type: "context",
                 question: "What was the 'British Invasion' in music history?",
                 options: [
@@ -366,6 +554,96 @@
                 explanation: "The British Invasion refers to British bands like The Beatles and The Rolling Stones dominating American charts in the mid-1960s.",
                 genre: "Rock",
                 era: "1960s"
+            }, 
+            {
+                type: "context",
+                question: "Which genre is most associated with protest music during the 1960s in the United States?",
+                options: ["Folk", "Pop", "Electronic", "Classical"],
+                correctAnswer: "Folk",
+                explanation: "Artists like Bob Dylan used folk music to address civil rights and anti-war sentiments in the 1960s.",
+                genre: "Folk",
+                era: "1960s"
+            },
+            {
+                type: "context",
+                question: "Which invention allowed for the mass production and widespread accessibility of recorded music in the early 20th century?",
+                options: ["Phonograph", "Television", "MP3 Player", "Streaming Services"],
+                correctAnswer: "Phonograph",
+                explanation: "The phonograph enabled people to listen to recorded music at home, revolutionizing the industry in the early 1900s.",
+                genre: "Various",
+                era: "1900s"
+            },
+            {
+                type: "context",
+                question: "What musical style is characterized by improvisation and originated from African American communities in the early 20th century?",
+                options: ["Jazz", "Opera", "Country", "Metal"],
+                correctAnswer: "Jazz",
+                explanation: "Jazz emerged in the early 20th century with a strong emphasis on improvisation, rhythm, and blues elements.",
+                genre: "Jazz",
+                era: "1920s"
+            },
+            {
+                type: "context",
+                question: "Which 1980s innovation dramatically changed how music videos were consumed?",
+                options: ["MTV", "YouTube", "Spotify", "Blu-ray"],
+                correctAnswer: "MTV",
+                explanation: "MTV launched in 1981 and made music videos a central part of music promotion and artist image.",
+                genre: "Various",
+                era: "1980s"
+            },
+            {
+                type: "context",
+                question: "What genre did artists like Public Enemy and N.W.A pioneer in the 1980s and 1990s?",
+                options: ["Gangsta Rap", "Jazz Fusion", "House", "Glam Rock"],
+                correctAnswer: "Gangsta Rap",
+                explanation: "Public Enemy and N.W.A popularized gangsta rap, focusing on social issues and urban life.",
+                genre: "Hip-Hop",
+                era: "1990s"
+            },
+            {
+                type: "context",
+                question: "Which 1970s genre blended elements of soul, funk, and Latin music to become a dance-floor phenomenon?",
+                options: ["Disco", "Reggae", "Grunge", "Psychedelic Rock"],
+                correctAnswer: "Disco",
+                explanation: "Disco dominated clubs in the 1970s with its steady beats, lush arrangements, and dance rhythms.",
+                genre: "Disco",
+                era: "1970s"
+            },
+            {
+                type: "context",
+                question: "Who is considered one of the pioneers of rock and roll in the 1950s?",
+                options: ["Chuck Berry", "Kurt Cobain", "Jay-Z", "Beethoven"],
+                correctAnswer: "Chuck Berry",
+                explanation: "Chuck Berry blended rhythm and blues with energetic guitar work, helping define early rock and roll.",
+                genre: "Rock",
+                era: "1950s"
+            },
+            {
+                type: "context",
+                question: "Which format became the dominant physical music distribution method in the 1990s?",
+                options: ["Compact Disc (CD)", "Cassette", "Vinyl", "Minidisc"],
+                correctAnswer: "Compact Disc (CD)",
+                explanation: "CDs offered improved sound quality and durability, replacing cassettes and vinyl in the 1990s.",
+                genre: "Various",
+                era: "1990s"
+            },
+            {
+                type: "context",
+                question: "What genre emerged in Seattle in the late 1980s and early 1990s, combining punk and metal?",
+                options: ["Grunge", "Thrash", "Funk Rock", "Hardcore"],
+                correctAnswer: "Grunge",
+                explanation: "Grunge fused raw guitar sounds with introspective lyrics and was popularized by bands like Nirvana.",
+                genre: "Grunge",
+                era: "1990s"
+            },
+            {
+                type: "context",
+                question: "What was the primary role of a 'DJ' in the early days of hip-hop?",
+                options: ["Scratching records and creating beats", "Singing lyrics", "Playing jazz instruments", "Conducting orchestras"],
+                correctAnswer: "Scratching records and creating beats",
+                explanation: "Early hip-hop DJs used turntables to manipulate records, creating the foundation of hip-hop beats.",
+                genre: "Hip-Hop",
+                era: "1980s"
             }
         ];
 
