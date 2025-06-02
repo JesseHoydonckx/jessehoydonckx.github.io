@@ -3,1287 +3,580 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Music Knowledge Quiz</title>
+    <title>GuessTheTrack: Educational Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .video-container {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-        }
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        .option-btn {
-            transition: all 0.3s ease;
-        }
-        .option-btn:hover {
-            transform: translateY(-2px);
-        }
-        .progress-bar {
-            transition: width 0.5s ease;
-        }
-        .sam-scale {
-            transition: all 0.2s ease;
-        }
-        .sam-scale:hover {
-            transform: scale(1.1);
-        }
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
+        /* Custom animations */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
+        
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        /* Audio player styling */
+        .audio-player {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+        }
+        
+        .audio-player::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #4f46e5;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Slide-in menu */
+        .menu-slide {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .menu-slide.open {
+            transform: translateX(0);
+        }
+        
+        /* Button press effect */
+        .btn-press:active {
+            transform: scale(0.95);
+        }
+
+        input[type="checkbox"]:checked + .block {
+            background-color: #4f46e5; /* Indigo */
+        }
+        input[type="checkbox"]:checked ~ .dot {
+            transform: translateX(24px);
+            background-color: #6366f1;
+        }
     </style>
 </head>
-
-<body class="bg-gradient-to-br from-indigo-900 to-purple-900 min-h-screen text-white">
-    <div class="container mx-auto px-4 py-8">
-        <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-4xl md:text-5xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-yellow-400 to-pink-500">
-                Music Knowledge Quiz
-            </h1>
-            <p class="text-lg text-purple-200">Test your music expertise across genres and eras</p>
-        </header>
-
-        <!-- Hamburger Menu -->
-        <div class="hamburger-menu absolute top-4 right-4 z-10">
-            <button id="menu-toggle" class="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-all duration-300">
-                <i class="fas fa-bars text-xl"></i>
+<body class="bg-gray-100 min-h-screen font-sans">
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white shadow-md">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <!-- Hamburger Menu -->
+            <button id="menuBtn" class="text-white focus:outline-none">
+                <i class="fas fa-bars text-2xl"></i>
             </button>
-            <div id="menu-content" class="hidden absolute top-12 right-0 bg-indigo-900/95 backdrop-blur-md rounded-lg shadow-lg w-48 py-2 border border-purple-500/50">
-                <button class="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors" onclick="showUserScreen()">
-                    <i class="fas fa-user mr-2"></i> User
-                </button>
-                <button class="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors" onclick="showDeveloperScreen()">
-                    <i class="fas fa-code mr-2"></i> Developer
-                </button>
-                <hr class="border-purple-500/30 my-2">
-                <button class="w-full text-left px-4 py-2 hover:bg-white/10 transition-colors text-red-400" onclick="resetData()">
-                    <i class="fas fa-trash mr-2"></i> Reset Data
-                </button>
-            </div>
+            
+            <!-- Title -->
+            <h1 class="text-2xl md:text-3xl font-bold text-center">
+                <i class="fas fa-music mr-2"></i>
+                GuessTheTrack
+            </h1>
+            
+            <!-- Placeholder for alignment -->
+            <div class="w-8"></div>
         </div>
+    </header>
 
-        <!-- Update the Developer Screen section -->
-        <div id="developer-screen" class="hidden p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">Developer Tools</h2>
-                <button class="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-all duration-300" onclick="showModeScreen()">
-                    <i class="fas fa-times"></i>
+    <!-- Side Menu -->
+    <div id="sideMenu" class="menu-slide fixed top-0 left-0 w-64 h-full bg-gray-800 text-white z-50 shadow-xl">
+        <div class="p-4 flex justify-between items-center border-b border-gray-700">
+            <h2 class="text-xl font-bold">Menu</h2>
+            <button id="closeMenuBtn" class="text-white focus:outline-none">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="p-4">
+            <div class="mb-6">
+                <h3 class="text-lg font-semibold mb-2">Data Management</h3>
+                <button id="clearDataBtn" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded btn-press transition">
+                    <i class="fas fa-trash-alt mr-2"></i> Reset All Progress
                 </button>
             </div>
             
-            <!-- Mode Selection Section -->
-            <div class="bg-white/10 p-6 rounded-lg mb-6">
-                <h3 class="text-xl font-semibold mb-4">Mode Selection</h3>
+            <div>
+                <h3 class="text-lg font-semibold mb-2">Developer Options</h3>
+                
                 <div class="mb-4">
-                    <p class="text-purple-200 mb-2">Current Mode: <span id="current-mode" class="font-semibold">None</span></p>
-                    <div class="grid grid-cols-2 gap-3 mt-3">
-                        <button id="set-random-mode" class="bg-indigo-800/50 hover:bg-indigo-700/70 p-3 rounded-lg text-center transition-all duration-300 border border-indigo-600">
-                            <i class="fas fa-random mr-2"></i> Set Random Mode
-                        </button>
-                        <button id="set-personalized-mode" class="bg-purple-800/50 hover:bg-purple-700/70 p-3 rounded-lg text-center transition-all duration-300 border border-purple-600">
-                            <i class="fas fa-user mr-2"></i> Set Personalized Mode
-                        </button>
+                    <label class="flex items-center cursor-pointer">
+                        <div class="relative">
+                            <input id="quizModeToggle" type="checkbox" class="sr-only">
+                            <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                            <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
+                        </div>
+                        <div class="ml-3 text-gray-300 font-medium" id="quizModeLabel">
+                            Personalized Mode
+                        </div>
+                    </label>
+                </div>
+                
+                <div class="mb-4">
+                    <h4 class="text-md font-medium mb-2">User Model</h4>
+                    <div id="userModelDisplay" class="bg-gray-700 p-3 rounded max-h-40 overflow-y-auto custom-scrollbar text-sm">
+                        No data available
                     </div>
                 </div>
+                
+                <button id="exportDataBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded btn-press transition">
+                    <i class="fas fa-download mr-2"></i> Export User Model
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for menu -->
+    <div id="menuOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-40"></div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Home Screen -->
+        <div id="homeScreen" class="text-center fade-in">
+            <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-8">
+                <div class="text-indigo-600 mb-6">
+                    <i class="fas fa-music text-6xl"></i>
+                </div>
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4">Music History Challenge</h2>
+                <p class="text-gray-600 mb-6">
+                    Test your knowledge of music history, genres, and cultural context. 
+                    Each quiz will help you learn more about the evolution of music across decades.
+                </p>
+                <button id="startQuizBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full btn-press transition transform">
+                    Start Quiz <i class="fas fa-play ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quizScreen" class="hidden max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden fade-in">
+            <!-- Progress Bar -->
+            <div class="bg-gray-200 h-2">
+                <div id="quizProgress" class="bg-indigo-600 h-2" style="width: 0%"></div>
             </div>
             
-            <!-- Debug Info Section -->
-            <div class="bg-white/10 p-6 rounded-lg mb-6">
-                <h3 class="text-xl font-semibold mb-4">Debug Information</h3>
-                <div class="text-sm bg-gray-800/50 p-4 rounded-lg font-mono overflow-auto max-h-48">
-                    <pre id="debug-info">No data available</pre>
+            <div class="p-6">
+                <!-- Question Counter -->
+                <div class="text-right text-gray-500 mb-4">
+                    Question <span id="currentQuestion">1</span>/<span id="totalQuestions">5</span>
+                </div>
+                
+                <!-- Question Type Indicator -->
+                <div id="questionTypeBadge" class="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4">
+                    <i class="fas fa-question-circle mr-1"></i> Loading...
+                </div>
+                
+                <!-- Question Content -->
+                <div id="questionContent" class="mb-8">
+                    <!-- Will be filled by JavaScript -->
+                </div>
+                
+                <!-- Answer Options -->
+                <div id="answerOptions" class="space-y-3 mb-6">
+                    <!-- Will be filled by JavaScript -->
+                </div>
+                
+                <!-- Feedback Section -->
+                <div id="feedbackSection" class="hidden mb-6 p-4 rounded-lg">
+                    <!-- Will be filled by JavaScript -->
+                </div>
+                
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between">
+                    <button id="submitAnswerBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded btn-press transition">
+                        Submit Answer
+                    </button>
+                    <button id="nextQuestionBtn" class="hidden bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded btn-press transition">
+                        Next Question <i class="fas fa-arrow-right ml-1"></i>
+                    </button>
                 </div>
             </div>
         </div>
 
-        <!-- User Screen -->
-        <div id="user-screen" class="hidden p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">User Profile</h2>
-                <button class="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-all duration-300" onclick="showModeScreen()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="mb-8 bg-white/10 p-6 rounded-lg">
-                <h3 class="text-xl font-semibold mb-4">Your Music Profile</h3>
-                <div id="user-profile-screen" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- User profile stats will be populated here -->
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="hidden max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-8 fade-in">
+            <div class="text-center">
+                <div class="text-green-500 mb-4">
+                    <i class="fas fa-trophy text-5xl"></i>
                 </div>
-            </div>
-            <div class="flex justify-center">
-                <button onclick="resetData()" class="bg-gradient-to-r from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
-                    <i class="fas fa-trash mr-2"></i> Reset Data
+                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Quiz Completed!</h2>
+                <p class="text-gray-600 mb-6">Here's how you performed:</p>
+                
+                <!-- Overall Stats -->
+                <div class="bg-indigo-50 rounded-lg p-4 mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="font-medium">Total Score:</span>
+                        <span id="totalScore" class="font-bold text-xl">0/5</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="font-medium">Accuracy:</span>
+                        <span id="accuracyRate" class="font-bold text-xl">0%</span>
+                    </div>
+                </div>
+                
+                <!-- Performance by Category -->
+                <h3 class="text-lg font-semibold text-left mb-3">Performance by Category</h3>
+                <div class="space-y-4 mb-8">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">Genres</span>
+                            <span id="genreAccuracy" class="text-sm font-medium">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="genreProgress" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">Eras</span>
+                            <span id="eraAccuracy" class="text-sm font-medium">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="eraProgress" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <span class="text-sm font-medium">Question Types</span>
+                            <span id="typeAccuracy" class="text-sm font-medium">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div id="typeProgress" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Restart Button -->
+                <button id="restartQuizBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full btn-press transition">
+                    <i class="fas fa-redo mr-2"></i> Take Another Quiz
                 </button>
             </div>
         </div>
+    </main>
 
-        <!-- Main App Container -->
-        <div id="app" class="max-w-3xl mx-auto bg-white/10 backdrop-blur-md rounded-xl shadow-2xl overflow-hidden fade-in">
-            <!-- Mode Selection Screen -->
-            <div id="mode-screen" class="p-6">
-                <h2 class="text-2xl font-bold mb-6 text-center">Select Quiz Mode</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-indigo-800/50 p-6 rounded-lg cursor-pointer hover:bg-indigo-700/70 transition-all duration-300 border-2 border-indigo-600" onclick="selectMode('random')">
-                        <div class="text-center">
-                            <i class="fas fa-random text-4xl mb-3 text-yellow-400"></i>
-                            <h3 class="text-xl font-semibold mb-2">Randomized Quiz</h3>
-                            <p class="text-purple-200">Questions selected randomly from all genres</p>
-                        </div>
-                    </div>
-                    <div class="bg-purple-800/50 p-6 rounded-lg cursor-pointer hover:bg-purple-700/70 transition-all duration-300 border-2 border-purple-600" onclick="selectMode('personalized')">
-                        <div class="text-center">
-                            <i class="fas fa-user text-4xl mb-3 text-pink-400"></i>
-                            <h3 class="text-xl font-semibold mb-2">Personalized Quiz</h3>
-                            <p class="text-purple-200">Questions adapt based on your performance</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Genre Selection Screen -->
-            <div id="genre-screen" class="hidden p-6">
-                <h2 class="text-2xl font-bold mb-6 text-center">Select Your Genre</h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="genre-grid">
-                    <!-- Genres will be populated here -->
-                </div>
-                <div class="mt-6 flex justify-center">
-                    <button id="start-quiz-btn" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
-                        Start Quiz
-                    </button>
-                </div>
-            </div>
-
-            <!-- Quiz Screen -->
-            <div id="quiz-screen" class="hidden">
-                <!-- Progress Bar -->
-                <div class="bg-gray-800 h-2">
-                    <div id="progress-bar" class="progress-bar bg-gradient-to-r from-yellow-400 to-pink-500 h-full" style="width: 0%"></div>
-                </div>
-
-                <div class="p-6">
-                    <!-- Question Counter -->
-                    <div class="flex justify-between items-center mb-4">
-                        <div id="question-counter" class="text-purple-200 font-medium">Question 1 of 5</div>
-                        <div id="timer" class="bg-purple-800/50 px-3 py-1 rounded-full text-sm font-semibold">
-                            <i class="fas fa-clock mr-1"></i> <span id="time">15</span>s
-                        </div>
-                    </div>
-
-                    <!-- Video Player -->
-                    <div id="video-container" class="video-container rounded-lg overflow-hidden mb-6 shadow-lg">
-                        <!-- YouTube iframe will be inserted here -->
-                    </div>
-
-                    <!-- Question -->
-                    <h3 id="question-text" class="text-xl font-bold mb-4 text-center"></h3>
-
-                    <!-- Options -->
-                    <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-                        <!-- Options will be populated here -->
-                    </div>
-
-                    <!-- Next Button -->
-                    <div class="flex justify-center">
-                        <button id="next-btn" class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 hidden">
-                            Next Question
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Trivia Screen -->
-            <div id="trivia-screen" class="hidden p-6">
-                <h2 class="text-2xl font-bold mb-6 text-center">Music Trivia</h2>
-                <h3 id="trivia-question" class="text-xl font-semibold mb-4"></h3>
-                <div id="trivia-options" class="grid grid-cols-1 gap-3 mb-6">
-                    <!-- Trivia options will be populated here -->
-                </div>
-                <div class="flex justify-center">
-                    <button id="next-trivia-btn" class="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 hidden">
-                        Continue
-                    </button>
-                </div>
-            </div>
-
-            <!-- Feedback Screen -->
-            <div id="feedback-screen" class="hidden p-6">
-                <div class="text-center mb-6">
-                    <div id="feedback-icon" class="text-6xl mb-4">
-                        <i class="fas fa-check-circle text-green-400"></i>
-                    </div>
-                    <h2 id="feedback-title" class="text-2xl font-bold mb-2">Correct!</h2>
-                    <p id="feedback-text" class="text-lg text-purple-200">You got it right!</p>
-                </div>
-                <div class="bg-white/10 p-4 rounded-lg mb-6">
-                    <h3 class="font-semibold mb-2">Did you know?</h3>
-                    <p id="trivia-fact" class="text-purple-100"></p>
-                </div>
-                <div class="flex justify-center">
-                    <button id="continue-btn" class="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
-                        Continue
-                    </button>
-                </div>
-            </div>
-
-            <!-- Results Screen -->
-            <div id="results-screen" class="hidden p-6">
-                <div class="text-center mb-8">
-                    <h2 class="text-3xl font-bold mb-4">Quiz Complete!</h2>
-                    <div class="inline-block bg-gradient-to-r from-yellow-400 to-pink-500 text-transparent bg-clip-text">
-                        <p class="text-5xl font-bold mb-2" id="score">0</p>
-                        <p class="text-lg">out of <span id="total-questions">5</span> correct</p>
-                    </div>
-                </div>
-
-                <div class="mb-8">
-                    <h3 class="text-xl font-semibold mb-4 text-center">Your Performance</h3>
-                    <div id="performance-stats" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Performance stats will be populated here -->
-                    </div>
-                </div>
-
-                <div class="flex justify-center">
-                    <button id="survey-btn" class="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
-                        Complete Survey
-                    </button>
-                </div>
-            </div>
-
-            <!-- Survey Screen -->
-            <div id="survey-screen" class="hidden p-6">
-                <h2 class="text-2xl font-bold mb-6 text-center">Post-Quiz Survey</h2>
-                
-                <!-- Usability Questions -->
-                <div class="mb-8">
-                    <h3 class="text-xl font-semibold mb-4">Usability</h3>
-                    <p class="text-purple-200 mb-4">Please rate your agreement with the following statements:</p>
-                    
-                    <div id="usability-questions">
-                        <!-- Usability questions will be populated here -->
-                    </div>
-                </div>
-                
-                <!-- Emotional Assessment (SAM) -->
-                <div class="mb-8">
-                    <h3 class="text-xl font-semibold mb-4">Emotional Assessment</h3>
-                    <p class="text-purple-200 mb-4">How did you feel during the quiz?</p>
-                    
-                    <!-- Valence (Happy/Unhappy) -->
-                    <div class="mb-6">
-                        <p class="mb-3">Happy <span class="text-purple-300">vs</span> Unhappy</p>
-                        <div class="flex justify-between items-center">
-                            <div class="sam-scale cursor-pointer" data-dimension="valence" data-value="1" onclick="selectSAM('valence', 1)">
-                                <img src="https://cdn.jsdelivr.net/gh/JamesTsetsekas/sam-images@master/1.png" alt="Very unhappy" class="w-12 h-12 md:w-16 md:h-16">
-                            </div>
-                            <div class="sam-scale cursor-pointer" data-dimension="valence" data-value="2" onclick="selectSAM('valence', 2)">
-                                <img src="https://cdn.jsdelivr.net/gh/JamesTsetsekas/sam-images@master/2.png" alt="Unhappy" class="w-12 h-12 md:w-16 md:h-16">
-                            </div>
-                            <div class="sam-scale cursor-pointer" data-dimension="valence" data-value="3" onclick="selectSAM('valence', 3)">
-                                <img src="https://cdn.jsdelivr.net/gh/JamesTsetsekas/sam-images@master/3.png" alt="Neutral" class="w-12 h-12 md:w-16 md:h-16">
-                            </div>
-                            <div class="sam-scale cursor-pointer" data-dimension="valence" data-value="4" onclick="selectSAM('valence', 4)">
-                                <img src="https://cdn.jsdelivr.net/gh/JamesTsetsekas/sam-images@master/4.png" alt="Happy" class="w-12 h-12 md:w-16 md:h-16">
-                            </div>
-                            <div class="sam-scale cursor-pointer" data-dimension="valence" data-value="5" onclick="selectSAM('valence', 5)">
-                                <img src="https://cdn.jsdelivr.net/gh/JamesTsetsekas/sam-images@master/5.png" alt="Very happy" class="w-12 h-12 md:w-16 md:h-16">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Arousal (Excited/Calm) -->
-                    <div class="mb-6">
-                        <p class="mb-3">Excited <span class="text-purple-300">vs</span> Calm</p>
-                        <div class="flex justify-between items-center">
-                            <div class="sam-scale cursor-pointer" data-dimension="arousal" data-value="1" onclick="selectSAM('arousal', 1)">
-                                <img src="https://cdn.jsdelivr.net/gh/JamesTsetsekas/sam-images@master/1.png" alt="Very calm" class="w-12 h-12 md:w-16 md:h-16">
-                            </div>
-                            <div class="sam-scale cursor-pointer" data-dimension="arousal" data-value="2" onclick="selectSAM('arousal', 2)">
-                                <img src="https://cdn.jsdelivr.net/gh/JamesTsetsekas/sam-images@master/2.png" alt="Calm" class="w-12 h-12 md:w-16 md:h-16">
-                            </div>
-                            <div class="sam-scale cursor-pointer" data-dimension="arousal" data-value="3" onclick="selectSAM('arousal', 3)">
-                                <img src="https://cdn.jsdelivr.net/gh/JamesTsetsekas/sam-images@master/3.png" alt="Neutral" class="w-12 h-12 md:w-16 md:h-16">
-                            </div>
-                            <div class="sam-scale cursor-pointer" data-dimension="arousal" data-value="4" onclick="selectSAM('arousal', 4)">
-                                <img src="https://cdn.jsdelivr.net/gh/JamesTsetsekas/sam-images@master/4.png" alt="Excited" class="w-12 h-12 md:w-16 md:h-16">
-                            </div>
-                            <div class="sam-scale cursor-pointer" data-dimension="arousal" data-value="5" onclick="selectSAM('arousal', 5)">
-                                <img src="https://cdn.jsdelivr.net/gh/JamesTsetsekas/sam-images@master/5.png" alt="Very excited" class="w-12 h-12 md:w-16 md:h-16">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="flex justify-center">
-                    <button id="submit-survey-btn" class="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
-                        Submit Survey
-                    </button>
-                </div>
-            </div>
-
-            <!-- Final Screen -->
-            <div id="final-screen" class="hidden p-6 text-center">
-                <div class="mb-8">
-                    <i class="fas fa-check-circle text-6xl text-green-400 mb-4"></i>
-                    <h2 class="text-3xl font-bold mb-2">Thank You!</h2>
-                    <p class="text-lg text-purple-200">Your quiz results and feedback have been recorded.</p>
-                </div>
-                <div class="mb-8 bg-white/10 p-6 rounded-lg">
-                    <h3 class="text-xl font-semibold mb-4">Your Music Profile</h3>
-                    <div id="user-profile" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- User profile stats will be populated here -->
-                    </div>
-                </div>
-                <div class="flex justify-center gap-4">
-                    <button onclick="restartQuiz()" class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
-                        Play Again
-                    </button>
-                    <button onclick="exportData()" class="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
-                        <i class="fas fa-download mr-2"></i> Export Data
-                    </button>
-                </div>
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-sm w-full">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Confirm Reset</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to reset all your progress? This action cannot be undone.</p>
+            <div class="flex justify-end space-x-3">
+                <button id="cancelResetBtn" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                    Cancel
+                </button>
+                <button id="confirmResetBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                    Reset
+                </button>
             </div>
         </div>
     </div>
 
     <script>
         // Quiz Data
-        const genres = [
-            { id: 'pop', name: 'Pop', color: 'bg-pink-500', icon: 'fas fa-music' },
-            { id: 'rock', name: 'Rock', color: 'bg-red-500', icon: 'fas fa-guitar' },
-            { id: 'hiphop', name: 'Hip-Hop', color: 'bg-purple-500', icon: 'fas fa-microphone-alt' },
-            { id: 'electronic', name: 'Electronic', color: 'bg-blue-500', icon: 'fas fa-sliders-h' },
-            { id: 'jazz', name: 'Jazz', color: 'bg-yellow-500', icon: 'fas fa-saxophone' },
-            { id: 'classical', name: 'Classical', color: 'bg-indigo-500', icon: 'fas fa-violin' }
-        ];
-
-        // Sample questions database
-        const questionsDatabase = {
-            pop: [
-                {
-                    id: "q1",
-                    videoUrl: "https://www.youtube.com/watch?v=JGwWNGJdvx8",
-                    start: 90,
-                    duration: 15,
-                    questionType: "song",
-                    question: "What is the name of this song?",
-                    options: ["Shape of You", "Perfect", "Thinking Out Loud", "Photograph"],
-                    correctAnswer: "Shape of You",
-                    trivia: {
-                        question: "What year was 'Shape of You' released?",
-                        options: ["2015", "2016", "2017", "2018"],
-                        correctAnswer: "2017",
-                        fact: "Shape of You became Ed Sheeran's first number-one single on the Billboard Hot 100 in the US."
-                    }
-                },
-                {
-                    id: "q2",
-                    videoUrl: "https://www.youtube.com/watch?v=k4V3Mo61fJM",
-                    start: 60,
-                    duration: 15,
-                    questionType: "artist",
-                    question: "Who is the artist of this song?",
-                    options: ["Adele", "Taylor Swift", "Lady Gaga", "Katy Perry"],
-                    correctAnswer: "Adele",
-                    trivia: {
-                        question: "Which album does this song belong to?",
-                        options: ["19", "21", "25", "30"],
-                        correctAnswer: "25",
-                        fact: "Hello was Adele's first number-one single in the US since 'Rolling in the Deep' in 2011."
-                    }
-                }
-            ],
-            rock: [
-                {
-                    id: "q3",
-                    videoUrl: "https://www.youtube.com/watch?v=vSl3gBQSmBo",
-                    start: 120,
-                    duration: 15,
-                    questionType: "song",
-                    question: "What is the name of this song?",
-                    options: ["Sweet Child O' Mine", "Welcome to the Jungle", "Paradise City", "November Rain"],
-                    correctAnswer: "Sweet Child O' Mine",
-                    trivia: {
-                        question: "Which album features this song?",
-                        options: ["Appetite for Destruction", "Use Your Illusion I", "Use Your Illusion II", "G N' R Lies"],
-                        correctAnswer: "Appetite for Destruction",
-                        fact: "The opening guitar riff of Sweet Child O' Mine was ranked #1 in Total Guitar's poll of the 100 Greatest Riffs."
-                    }
-                },
-                {
-                    id: "q4",
-                    videoUrl: "https://www.youtube.com/watch?v=1w7OgIMMRc4",
-                    start: 90,
-                    duration: 15,
-                    questionType: "artist",
-                    question: "Who is the artist of this song?",
-                    options: ["The Beatles", "The Rolling Stones", "The Who", "Queen"],
-                    correctAnswer: "Queen",
-                    trivia: {
-                        question: "What year was 'Bohemian Rhapsody' released?",
-                        options: ["1973", "1975", "1977", "1979"],
-                        correctAnswer: "1975",
-                        fact: "Bohemian Rhapsody was the first song to top the UK charts twice with the same version."
-                    }
-                }
-            ],
-            hiphop: [
-                {
-                    id: "q5",
-                    videoUrl: "https://www.youtube.com/watch?v=JQbjS0_ZfJ0",
-                    start: 60,
-                    duration: 15,
-                    questionType: "song",
-                    question: "What is the name of this song?",
-                    options: ["Sicko Mode", "God's Plan", "In My Feelings", "Hotline Bling"],
-                    correctAnswer: "God's Plan",
-                    trivia: {
-                        question: "How many weeks did 'God's Plan' spend at #1 on the Billboard Hot 100?",
-                        options: ["8 weeks", "11 weeks", "15 weeks", "19 weeks"],
-                        correctAnswer: "11 weeks",
-                        fact: "God's Plan broke the record for most streams in a week in the US with 116.2 million streams."
-                    }
-                },
-                {
-                    id: "q6",
-                    videoUrl: "https://www.youtube.com/watch?v=ZSM3w1v-A_Y",
-                    start: 30,
-                    duration: 15,
-                    questionType: "artist",
-                    question: "Who is the artist of this song?",
-                    options: ["Kendrick Lamar", "J. Cole", "Drake", "Travis Scott"],
-                    correctAnswer: "Kendrick Lamar",
-                    trivia: {
-                        question: "Which album does 'HUMBLE.' appear on?",
-                        options: ["good kid, m.A.A.d city", "To Pimp a Butterfly", "DAMN.", "Section.80"],
-                        correctAnswer: "DAMN.",
-                        fact: "HUMBLE. won Best Rap Song and Best Rap Performance at the 60th Grammy Awards."
-                    }
-                }
-            ],
-            electronic: [
-                {
-                    id: "q7",
-                    videoUrl: "https://www.youtube.com/watch?v=7PBYGu4Az8s",
-                    start: 90,
-                    duration: 15,
-                    questionType: "song",
-                    question: "What is the name of this song?",
-                    options: ["Wake Me Up", "Levels", "Waiting for Love", "The Nights"],
-                    correctAnswer: "Wake Me Up",
-                    trivia: {
-                        question: "Who is the vocalist on 'Wake Me Up'?",
-                        options: ["Sia", "Aloe Blacc", "John Legend", "Bruno Mars"],
-                        correctAnswer: "Aloe Blacc",
-                        fact: "Wake Me Up became the most streamed song on Spotify in 2013 and 2014."
-                    }
-                },
-                {
-                    id: "q8",
-                    videoUrl: "https://www.youtube.com/watch?v=wDjeBNv6ip0",
-                    start: 60,
-                    duration: 15,
-                    questionType: "artist",
-                    question: "Who is the artist of this song?",
-                    options: ["The Chainsmokers", "Marshmello", "Calvin Harris", "Martin Garrix"],
-                    correctAnswer: "The Chainsmokers",
-                    trivia: {
-                        question: "Which artist is featured on 'Closer'?",
-                        options: ["Halsey", "Dua Lipa", "Bebe Rexha", "Ariana Grande"],
-                        correctAnswer: "Halsey",
-                        fact: "Closer became the Chainsmokers' first number-one single on the Billboard Hot 100."
-                    }
-                }
-            ],
-            jazz: [
-                {
-                    id: "q9",
-                    videoUrl: "https://www.youtube.com/watch?v=vmDDOFXSgAs",
-                    start: 60,
-                    duration: 15,
-                    questionType: "artist",
-                    question: "Who is the artist of this song?",
-                    options: ["Louis Armstrong", "Duke Ellington", "Count Basie", "Miles Davis"],
-                    correctAnswer: "Louis Armstrong",
-                    trivia: {
-                        question: "What is Louis Armstrong's nickname?",
-                        options: ["Duke", "Count", "Satchmo", "Bird"],
-                        correctAnswer: "Satchmo",
-                        fact: "Louis Armstrong was one of the first truly popular African-American entertainers to 'cross over' to wide popularity."
-                    }
-                },
-                {
-                    id: "q10",
-                    videoUrl: "https://www.youtube.com/watch?v=myRc-3oF1d0",
-                    start: 45,
-                    duration: 15,
-                    questionType: "song",
-                    question: "What is the name of this song?",
-                    options: ["Take Five", "Blue Rondo à la Turk", "Unsquare Dance", "Strange Meadow Lark"],
-                    correctAnswer: "Take Five",
-                    trivia: {
-                        question: "Which jazz legend composed 'Take Five'?",
-                        options: ["Dave Brubeck", "Miles Davis", "John Coltrane", "Duke Ellington"],
-                        correctAnswer: "Dave Brubeck",
-                        fact: "Take Five is one of the best-selling jazz singles of all time and the first to sell a million copies."
-                    }
-                }
-            ],
-            classical: [
-                {
-                    id: "q11",
-                    videoUrl: "https://www.youtube.com/watch?v=JTc1mDieQI8",
-                    start: 60,
-                    duration: 15,
-                    questionType: "song",
-                    question: "What is the name of this composition?",
-                    options: ["Moonlight Sonata", "Für Elise", "Symphony No. 5", "Ode to Joy"],
-                    correctAnswer: "Für Elise",
-                    trivia: {
-                        question: "Who composed 'Für Elise'?",
-                        options: ["Mozart", "Beethoven", "Bach", "Chopin"],
-                        correctAnswer: "Beethoven",
-                        fact: "Für Elise wasn't published until 40 years after Beethoven's death and its dedicatee remains a mystery."
-                    }
-                },
-                {
-                    id: "q12",
-                    videoUrl: "https://www.youtube.com/watch?v=4Tr0otuiQuU",
-                    start: 120,
-                    duration: 15,
-                    questionType: "artist",
-                    question: "Who composed this piece?",
-                    options: ["Tchaikovsky", "Mozart", "Beethoven", "Vivaldi"],
-                    correctAnswer: "Vivaldi",
-                    trivia: {
-                        question: "What is the name of this composition?",
-                        options: ["The Four Seasons", "The Nutcracker", "Eine kleine Nachtmusik", "Symphony No. 9"],
-                        correctAnswer: "The Four Seasons",
-                        fact: "The Four Seasons is one of the earliest examples of program music - music that tells a story."
-                    }
-                }
-            ]
-        };
-
-        // Usability questions
-        const usabilityQuestions = [
-            "The quiz was easy to navigate",
-            "The questions were clear and understandable",
-            "The video clips were of good quality",
-            "The timer added appropriate pressure",
-            "I would take this quiz again"
+        const quizData = [
+            // Audio questions
+            {
+                type: "audio",
+                audioSrc: "https://freemusicarchive.org/music/art-flower/lets-rock/art-flower-gitano-waltz/",
+                question: "Listen to this 10-second audio clip. Which era does this song belong to?",
+                options: ["1960s", "1980s", "2000s", "2020s"],
+                correctAnswer: "1980s",
+                explanation: "This song features the distinctive synthesizer sounds that were popular in 1980s pop music.",
+                genre: "Pop",
+                era: "1980s"
+            },
+            {
+                type: "audio",
+                audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+                question: "What genre best describes this musical excerpt?",
+                options: ["Jazz", "Blues", "Rock", "Classical"],
+                correctAnswer: "Jazz",
+                explanation: "The improvisational nature and swing rhythm are characteristic of jazz music.",
+                genre: "Jazz",
+                era: "1950s"
+            },
+            // Context questions
+            {
+                type: "context",
+                question: "Which instrument became a defining sound of rock music in the 1960s?",
+                options: ["Electric Guitar", "Piano", "Saxophone", "Violin"],
+                correctAnswer: "Electric Guitar",
+                explanation: "The electric guitar, with artists like Jimi Hendrix and Eric Clapton, became the iconic instrument of 1960s rock.",
+                genre: "Rock",
+                era: "1960s"
+            },
+            {
+                type: "context",
+                question: "What cultural movement was closely associated with the rise of hip-hop in the 1970s?",
+                options: ["Beat Generation", "Harlem Renaissance", "Civil Rights Movement", "Black Power Movement"],
+                correctAnswer: "Black Power Movement",
+                explanation: "Hip-hop emerged as a cultural expression of urban African American communities during the Black Power era.",
+                genre: "Hip-Hop",
+                era: "1970s"
+            },
+            {
+                type: "context",
+                question: "Which of these technological advancements had the biggest impact on music distribution in the 2000s?",
+                options: ["MP3 Players", "Vinyl Records", "Cassette Tapes", "CD Players"],
+                correctAnswer: "MP3 Players",
+                explanation: "The rise of MP3 players and digital downloads revolutionized how people accessed music in the 2000s.",
+                genre: "Various",
+                era: "2000s"
+            },
+            {
+                type: "audio",
+                audioSrc: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+                question: "This musical style originated in which decade?",
+                options: ["1920s", "1940s", "1960s", "1980s"],
+                correctAnswer: "1920s",
+                explanation: "This early jazz style with its distinctive rhythms was popular in the 1920s, often called the Jazz Age.",
+                genre: "Jazz",
+                era: "1920s"
+            },
+            {
+                type: "context",
+                question: "What was the 'British Invasion' in music history?",
+                options: [
+                    "A wave of British rock bands that became popular in the US in the 1960s",
+                    "When classical music became popular in Britain",
+                    "The introduction of American jazz to Britain",
+                    "A military conflict over music rights"
+                ],
+                correctAnswer: "A wave of British rock bands that became popular in the US in the 1960s",
+                explanation: "The British Invasion refers to British bands like The Beatles and The Rolling Stones dominating American charts in the mid-1960s.",
+                genre: "Rock",
+                era: "1960s"
+            }
         ];
 
         // App State
-        let state = {
-            mode: null, // 'random' or 'personalized'
-            selectedGenre: null,
-            currentRound: 0,
-            totalRounds: 5,
-            score: 0,
-            questions: [],
+        const state = {
             currentQuestionIndex: 0,
-            timer: null,
-            timeLeft: 15,
-            userAnswer: null,
-            isCorrect: false,
+            score: 0,
+            quizLength: 5,
+            selectedAnswer: null,
+            isAnswerSubmitted: false,
             userModel: {
-                genreStats: {},
-                incorrectTopics: [],
-                preferredGenres: []
+                genres: {},
+                eras: {},
+                types: {},
+                totalQuestions: 0,
+                correctAnswers: 0
             },
-            surveyAnswers: {
-                usability: {},
-                emotions: {
-                    valence: null,
-                    arousal: null
-                }
-            },
-            sessionLog: []
+            currentQuiz: [],
+            sessionAnswers: [],
+            personalizedMode: true
         };
 
         // DOM Elements
         const elements = {
-            modeScreen: document.getElementById('mode-screen'),
-            genreScreen: document.getElementById('genre-screen'),
-            genreGrid: document.getElementById('genre-grid'),
-            startQuizBtn: document.getElementById('start-quiz-btn'),
-            quizScreen: document.getElementById('quiz-screen'),
-            questionCounter: document.getElementById('question-counter'),
-            timer: document.getElementById('timer'),
-            time: document.getElementById('time'),
-            videoContainer: document.getElementById('video-container'),
-            questionText: document.getElementById('question-text'),
-            optionsContainer: document.getElementById('options-container'),
-            nextBtn: document.getElementById('next-btn'),
-            progressBar: document.getElementById('progress-bar'),
-            triviaScreen: document.getElementById('trivia-screen'),
-            triviaQuestion: document.getElementById('trivia-question'),
-            triviaOptions: document.getElementById('trivia-options'),
-            nextTriviaBtn: document.getElementById('next-trivia-btn'),
-            feedbackScreen: document.getElementById('feedback-screen'),
-            feedbackIcon: document.getElementById('feedback-icon'),
-            feedbackTitle: document.getElementById('feedback-title'),
-            feedbackText: document.getElementById('feedback-text'),
-            triviaFact: document.getElementById('trivia-fact'),
-            continueBtn: document.getElementById('continue-btn'),
-            resultsScreen: document.getElementById('results-screen'),
-            score: document.getElementById('score'),
-            totalQuestions: document.getElementById('total-questions'),
-            performanceStats: document.getElementById('performance-stats'),
-            surveyScreen: document.getElementById('survey-screen'),
-            usabilityQuestions: document.getElementById('usability-questions'),
-            submitSurveyBtn: document.getElementById('submit-survey-btn'),
-            finalScreen: document.getElementById('final-screen'),
-            userProfile: document.getElementById('user-profile'),
-            menuToggle: document.getElementById('menu-toggle'),
-            menuContent: document.getElementById('menu-content'),
-            developerScreen: document.getElementById('developer-screen'),
-            userScreen: document.getElementById('user-screen'),
-            userProfileScreen: document.getElementById('user-profile-screen'),
-            currentMode: document.getElementById('current-mode'),
-            setRandomMode: document.getElementById('set-random-mode'),
-            setPersonalizedMode: document.getElementById('set-personalized-mode'),
-            debugInfo: document.getElementById('debug-info'),
+            // Screens
+            homeScreen: document.getElementById('homeScreen'),
+            quizScreen: document.getElementById('quizScreen'),
+            resultsScreen: document.getElementById('resultsScreen'),
+            
+            // Menu
+            menuBtn: document.getElementById('menuBtn'),
+            closeMenuBtn: document.getElementById('closeMenuBtn'),
+            sideMenu: document.getElementById('sideMenu'),
+            menuOverlay: document.getElementById('menuOverlay'),
+            
+            // Quiz Controls
+            startQuizBtn: document.getElementById('startQuizBtn'),
+            submitAnswerBtn: document.getElementById('submitAnswerBtn'),
+            nextQuestionBtn: document.getElementById('nextQuestionBtn'),
+            restartQuizBtn: document.getElementById('restartQuizBtn'),
+            
+            // Quiz Display
+            questionContent: document.getElementById('questionContent'),
+            answerOptions: document.getElementById('answerOptions'),
+            feedbackSection: document.getElementById('feedbackSection'),
+            questionTypeBadge: document.getElementById('questionTypeBadge'),
+            currentQuestion: document.getElementById('currentQuestion'),
+            totalQuestions: document.getElementById('totalQuestions'),
+            quizProgress: document.getElementById('quizProgress'),
+            
+            // Results Display
+            totalScore: document.getElementById('totalScore'),
+            accuracyRate: document.getElementById('accuracyRate'),
+            genreAccuracy: document.getElementById('genreAccuracy'),
+            eraAccuracy: document.getElementById('eraAccuracy'),
+            typeAccuracy: document.getElementById('typeAccuracy'),
+            genreProgress: document.getElementById('genreProgress'),
+            eraProgress: document.getElementById('eraProgress'),
+            typeProgress: document.getElementById('typeProgress'),
+            
+            // Settings
+            quizModeToggle: document.getElementById('quizModeToggle'),
+            userModelDisplay: document.getElementById('userModelDisplay'),
+            quizModeLabel: document.getElementById('quizModeLabel'),
+            exportDataBtn: document.getElementById('exportDataBtn'),
+            clearDataBtn: document.getElementById('clearDataBtn'),
+            
+            // Modals
+            confirmModal: document.getElementById('confirmModal'),
+            cancelResetBtn: document.getElementById('cancelResetBtn'),
+            confirmResetBtn: document.getElementById('confirmResetBtn')
         };
 
         // Initialize the app
         function init() {
-            // Load user model from localStorage if it exists
-            const savedUserModel = localStorage.getItem('musicQuizUserModel');
-            if (savedUserModel) {
-                state.userModel = JSON.parse(savedUserModel);
-            } else {
-                // Initialize empty user model
-                genres.forEach(genre => {
-                    state.userModel.genreStats[genre.id] = { attempts: 0, correct: 0 };
-                });
+            loadUserModel();
+            setupEventListeners();
+            updateUI();
+        }
+
+        // Load user model from local storage
+        function loadUserModel() {
+            const savedModel = localStorage.getItem('guessTheTrackUserModel');
+            if (savedModel) {
+                state.userModel = JSON.parse(savedModel);
             }
             
-            // Automatically set the mode to random
-            state.mode = 'random';
-            updateModeDisplay();
-            
-            // Skip the mode selection screen and go directly to genre selection
-            // showGenreScreen();
-        }
-
-        // Show mode selection screen
-        function showModeScreen() {
-            hideAllScreens();
-            elements.modeScreen.classList.remove('hidden');
-        }
-
-        // Select quiz mode
-        function selectMode(mode) {
-            state.mode = mode;
-            showGenreScreen();
-        }
-
-        // Show genre selection screen
-        function showGenreScreen() {
-            hideAllScreens();
-            
-            // Clear previous genre buttons
-            elements.genreGrid.innerHTML = '';
-            
-            // Create genre buttons
-            genres.forEach(genre => {
-                const genreBtn = document.createElement('div');
-                genreBtn.className = `p-4 rounded-lg cursor-pointer text-center transition-all duration-300 transform hover:scale-105 ${genre.color} hover:${genre.color.replace('500', '600')}`;
-                genreBtn.innerHTML = `
-                    <i class="${genre.icon} text-2xl mb-2"></i>
-                    <h3 class="font-semibold">${genre.name}</h3>
-                    ${state.mode === 'personalized' && state.userModel.genreStats[genre.id] ? 
-                        `<p class="text-xs mt-1">${Math.round((state.userModel.genreStats[genre.id].correct / Math.max(1, state.userModel.genreStats[genre.id].attempts)) * 100)}% correct</p>` : ''}
-                `;
-                genreBtn.onclick = () => selectGenre(genre.id);
-                elements.genreGrid.appendChild(genreBtn);
-            });
-            
-            // In personalized mode, highlight recommended genres
-            if (state.mode === 'personalized') {
-                // Find genres with <50% accuracy
-                const weakGenres = genres.filter(genre => {
-                    const stats = state.userModel.genreStats[genre.id];
-                    return stats && stats.attempts > 0 && (stats.correct / stats.attempts) < 0.5;
-                });
-                
-                // If no weak genres, use preferred genres or all genres
-                const recommendedGenres = weakGenres.length > 0 ? weakGenres : 
-                    (state.userModel.preferredGenres.length > 0 ? 
-                        genres.filter(g => state.userModel.preferredGenres.includes(g.id)) : 
-                        genres);
-                
-                // Highlight recommended genres
-                recommendedGenres.forEach(genre => {
-                    const btn = elements.genreGrid.querySelector(`.${genre.color}`);
-                    if (btn) {
-                        btn.classList.add('ring-2', 'ring-white', 'ring-opacity-70');
-                    }
-                });
+            const savedMode = localStorage.getItem('guessTheTrackMode');
+            if (savedMode) {
+                state.personalizedMode = savedMode === 'personalized';
+                elements.quizModeToggle.checked = state.personalizedMode;
             }
             
-            elements.genreScreen.classList.remove('hidden');
+            updateQuizModeLabel();
+            updateUserModelDisplay();
         }
 
-        // Select genre
-        function selectGenre(genreId) {
-            state.selectedGenre = genreId;
-            
-            // In personalized mode, update preferred genres if this is a new favorite
-            if (state.mode === 'personalized' && !state.userModel.preferredGenres.includes(genreId)) {
-                // Add to preferred genres if user has good accuracy (>70%) in this genre
-                const stats = state.userModel.genreStats[genreId];
-                if (stats && stats.attempts > 5 && (stats.correct / stats.attempts) > 0.7) {
-                    state.userModel.preferredGenres.push(genreId);
-                }
-            }
-            
-            startQuiz();
+        // Save user model to local storage
+        function saveUserModel() {
+            localStorage.setItem('guessTheTrackUserModel', JSON.stringify(state.userModel));
+            localStorage.setItem('guessTheTrackMode', state.personalizedMode ? 'personalized' : 'random');
+            updateUserModelDisplay();
         }
 
-        // Start the quiz
-        function startQuiz() {
-            state.currentRound = 0;
-            state.score = 0;
-            state.currentQuestionIndex = 0;
-            
-            // Select questions based on mode
-            if (state.mode === 'random') {
-                // Get random questions from all genres
-                const allQuestions = Object.values(questionsDatabase).flat();
-                state.questions = getRandomQuestions(allQuestions, state.totalRounds);
-            } else {
-                // Personalized mode - select questions based on user model
-                let candidateQuestions = [];
-                
-                // 1. Include questions from weak genres (<50% accuracy)
-                const weakGenres = Object.entries(state.userModel.genreStats)
-                    .filter(([_, stats]) => stats.attempts > 0 && (stats.correct / stats.attempts) < 0.5)
-                    .map(([genre, _]) => genre);
-                
-                if (weakGenres.length > 0) {
-                    weakGenres.forEach(genre => {
-                        if (questionsDatabase[genre]) {
-                            candidateQuestions = candidateQuestions.concat(questionsDatabase[genre]);
-                        }
-                    });
-                }
-                
-                // 2. Include questions from previously incorrect topics
-                if (state.userModel.incorrectTopics.length > 0) {
-                    state.userModel.incorrectTopics.forEach(topic => {
-                        const [genre, artist] = topic.split('_');
-                        if (questionsDatabase[genre]) {
-                            const relatedQuestions = questionsDatabase[genre].filter(q => 
-                                q.correctAnswer.includes(artist) || 
-                                (q.trivia && q.trivia.correctAnswer.includes(artist))
-                            );
-                            candidateQuestions = candidateQuestions.concat(relatedQuestions);
-                        }
-                    });
-                }
-                
-                // 3. If not enough questions, add from preferred genres or selected genre
-                if (candidateQuestions.length < state.totalRounds) {
-                    const preferredGenres = state.userModel.preferredGenres.length > 0 ? 
-                        state.userModel.preferredGenres : [state.selectedGenre];
-                    
-                    preferredGenres.forEach(genre => {
-                        if (questionsDatabase[genre]) {
-                            candidateQuestions = candidateQuestions.concat(questionsDatabase[genre]);
-                        }
-                    });
-                }
-                
-                // Remove duplicates and select random questions
-                const uniqueQuestions = [...new Map(candidateQuestions.map(q => [q.id, q])).values()];
-                state.questions = getRandomQuestions(uniqueQuestions, state.totalRounds);
-            }
-            
-            showQuestion();
-        }
-
-        // Get random questions from a pool
-        function getRandomQuestions(pool, count) {
-            const shuffled = [...pool].sort(() => 0.5 - Math.random());
-            return shuffled.slice(0, count);
-        }
-
-        // Show current question
-        function showQuestion() {
-            hideAllScreens();
-            
-            const question = state.questions[state.currentQuestionIndex];
-            if (!question) {
-                showResults();
+        // Update the user model display in the menu
+        function updateUserModelDisplay() {
+            if (Object.keys(state.userModel.genres).length === 0 && 
+                Object.keys(state.userModel.eras).length === 0 &&
+                Object.keys(state.userModel.types).length === 0) {
+                elements.userModelDisplay.innerHTML = 'No data available';
                 return;
             }
             
-            // Update UI
-            elements.questionCounter.textContent = `Question ${state.currentQuestionIndex + 1} of ${state.questions.length}`;
-            elements.progressBar.style.width = `${(state.currentQuestionIndex / state.questions.length) * 100}%`;
+            let html = '<div class="grid grid-cols-3 gap-2 text-xs">';
+            html += '<div class="font-bold">Category</div><div class="font-bold">Attempts</div><div class="font-bold">Accuracy</div>';
             
-            // Set up video
-            elements.videoContainer.innerHTML = `
-                <iframe 
-                    src="${question.videoUrl}?start=${question.start}&autoplay=1&mute=1&enablejsapi=1" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-                </iframe>
-            `;
-            
-            // Set question text
-            elements.questionText.textContent = question.question;
-            
-            // Create options
-            elements.optionsContainer.innerHTML = '';
-            question.options.forEach((option, index) => {
-                const optionBtn = document.createElement('button');
-                optionBtn.className = 'option-btn bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg text-left';
-                optionBtn.textContent = option;
-                optionBtn.onclick = () => selectAnswer(option, question.correctAnswer);
-                elements.optionsContainer.appendChild(optionBtn);
-            });
-            
-            // Hide next button initially
-            elements.nextBtn.classList.add('hidden');
-            
-            // Start timer
-            startTimer();
-            
-            elements.quizScreen.classList.remove('hidden');
-        }
-
-        // Start the question timer
-        function startTimer() {
-            clearInterval(state.timer);
-            state.timeLeft = 15;
-            elements.time.textContent = state.timeLeft;
-            
-            state.timer = setInterval(() => {
-                state.timeLeft--;
-                elements.time.textContent = state.timeLeft;
-                
-                if (state.timeLeft <= 0) {
-                    clearInterval(state.timer);
-                    timeUp();
-                }
-            }, 1000);
-        }
-
-        // Time's up handler
-        function timeUp() {
-            // Disable all options
-            const optionBtns = elements.optionsContainer.querySelectorAll('button');
-            optionBtns.forEach(btn => {
-                btn.disabled = true;
-                btn.classList.remove('hover:bg-gray-700');
-            });
-            
-            // Mark the correct answer
-            const currentQuestion = state.questions[state.currentQuestionIndex];
-            const correctAnswer = currentQuestion.correctAnswer;
-            
-            optionBtns.forEach(btn => {
-                if (btn.textContent === correctAnswer) {
-                    btn.classList.add('bg-green-500', 'text-white');
-                }
-            });
-            
-            // Show next button
-            elements.nextBtn.classList.remove('hidden');
-            
-            // Log the unanswered question
-            logQuestion(false, false);
-        }
-
-        // Select an answer
-        function selectAnswer(selectedAnswer, correctAnswer) {
-            clearInterval(state.timer);
-            
-            // Disable all options
-            const optionBtns = elements.optionsContainer.querySelectorAll('button');
-            optionBtns.forEach(btn => {
-                btn.disabled = true;
-                btn.classList.remove('hover:bg-gray-700');
-                
-                // Mark selected and correct answers
-                if (btn.textContent === selectedAnswer) {
-                    state.userAnswer = selectedAnswer;
-                    state.isCorrect = selectedAnswer === correctAnswer;
-                    
-                    if (state.isCorrect) {
-                        btn.classList.add('bg-green-500', 'text-white');
-                        state.score++;
-                    } else {
-                        btn.classList.add('bg-red-500', 'text-white');
-                    }
-                }
-                
-                if (btn.textContent === correctAnswer && selectedAnswer !== correctAnswer) {
-                    btn.classList.add('bg-green-500', 'text-white');
-                }
-            });
-            
-            // Show next button
-            elements.nextBtn.classList.remove('hidden');
-            
-            // Log the question
-            logQuestion(state.isCorrect, true);
-        }
-
-        // Log question to session log and user model
-        function logQuestion(isCorrect, answered) {
-            const currentQuestion = state.questions[state.currentQuestionIndex];
-            const genre = genres.find(g => 
-                Object.values(questionsDatabase[g.id]).some(q => q.id === currentQuestion.id)
-            )?.id || state.selectedGenre;
-            
-            // Update session log
-            state.sessionLog.push({
-                questionId: currentQuestion.id,
-                genre: genre,
-                type: currentQuestion.questionType,
-                answer: state.userAnswer,
-                correct: isCorrect,
-                timeSpent: 15 - state.timeLeft,
-                timestamp: new Date().toISOString()
-            });
-            
-            // Update user model
-            if (genre) {
-                // Update genre stats
-                if (!state.userModel.genreStats[genre]) {
-                    state.userModel.genreStats[genre] = { attempts: 0, correct: 0 };
-                }
-                
-                state.userModel.genreStats[genre].attempts++;
-                if (isCorrect) {
-                    state.userModel.genreStats[genre].correct++;
-                }
-                
-                // Track incorrect topics
-                if (!isCorrect && answered) {
-                    const artist = currentQuestion.correctAnswer;
-                    const topic = `${genre}_${artist}`;
-                    if (!state.userModel.incorrectTopics.includes(topic)) {
-                        state.userModel.incorrectTopics.push(topic);
-                    }
-                }
+            // Add genres
+            html += '<div class="col-span-3 mt-1 font-medium">Genres</div>';
+            for (const [genre, stats] of Object.entries(state.userModel.genres)) {
+                const accuracy = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) : 0;
+                html += `<div>${genre}</div><div>${stats.attempts}</div><div>${accuracy}%</div>`;
             }
             
-            // Save user model
-            localStorage.setItem('musicQuizUserModel', JSON.stringify(state.userModel));
-        }
-
-        // Next question button handler
-        elements.nextBtn.onclick = showTrivia;
-
-        // Show trivia question
-        function showTrivia() {
-            hideAllScreens();
-            
-            const currentQuestion = state.questions[state.currentQuestionIndex];
-            const trivia = currentQuestion.trivia;
-            
-            if (!trivia) {
-                // If no trivia, skip to feedback
-                showFeedback();
-                return;
+            // Add eras
+            html += '<div class="col-span-3 mt-1 font-medium">Eras</div>';
+            for (const [era, stats] of Object.entries(state.userModel.eras)) {
+                const accuracy = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) : 0;
+                html += `<div>${era}</div><div>${stats.attempts}</div><div>${accuracy}%</div>`;
             }
             
-            // Set trivia question
-            elements.triviaQuestion.textContent = trivia.question;
+            // Add types
+            html += '<div class="col-span-3 mt-1 font-medium">Question Types</div>';
+            for (const [type, stats] of Object.entries(state.userModel.types)) {
+                const accuracy = stats.attempts > 0 ? Math.round((stats.correct / stats.attempts) * 100) : 0;
+                html += `<div>${type}</div><div>${stats.attempts}</div><div>${accuracy}%</div>`;
+            }
             
-            // Create options
-            elements.triviaOptions.innerHTML = '';
-            trivia.options.forEach((option, index) => {
-                const optionBtn = document.createElement('button');
-                optionBtn.className = 'option-btn bg-gray-800 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg text-left';
-                optionBtn.textContent = option;
-                optionBtn.onclick = () => selectTriviaAnswer(option, trivia.correctAnswer);
-                elements.triviaOptions.appendChild(optionBtn);
-            });
-            
-            // Hide next button initially
-            elements.nextTriviaBtn.classList.add('hidden');
-            
-            elements.triviaScreen.classList.remove('hidden');
+            html += '</div>';
+            elements.userModelDisplay.innerHTML = html;
         }
 
-        // Select trivia answer
-        function selectTriviaAnswer(selectedAnswer, correctAnswer) {
-            // Disable all options
-            const optionBtns = elements.triviaOptions.querySelectorAll('button');
-            optionBtns.forEach(btn => {
-                btn.disabled = true;
-                btn.classList.remove('hover:bg-gray-700');
-                
-                // Mark selected and correct answers
-                if (btn.textContent === selectedAnswer) {
-                    const isCorrect = selectedAnswer === correctAnswer;
-                    
-                    if (isCorrect) {
-                        btn.classList.add('bg-green-500', 'text-white');
-                    } else {
-                        btn.classList.add('bg-red-500', 'text-white');
-                    }
-                }
-                
-                if (btn.textContent === correctAnswer && selectedAnswer !== correctAnswer) {
-                    btn.classList.add('bg-green-500', 'text-white');
-                }
-            });
+        // Set up event listeners
+        function setupEventListeners() {
+            // Menu controls
+            elements.menuBtn.addEventListener('click', toggleMenu);
+            elements.closeMenuBtn.addEventListener('click', toggleMenu);
+            elements.menuOverlay.addEventListener('click', toggleMenu);
             
-            // Show next button
-            elements.nextTriviaBtn.classList.remove('hidden');
+            // Quiz controls
+            elements.startQuizBtn.addEventListener('click', startQuiz);
+            elements.submitAnswerBtn.addEventListener('click', submitAnswer);
+            elements.nextQuestionBtn.addEventListener('click', nextQuestion);
+            elements.restartQuizBtn.addEventListener('click', startQuiz);
+            
+            // Settings
+            elements.quizModeToggle.addEventListener('change', toggleQuizMode);
+            elements.exportDataBtn.addEventListener('click', exportUserModel);
+            elements.clearDataBtn.addEventListener('click', showResetConfirmation);
+            elements.cancelResetBtn.addEventListener('click', hideResetConfirmation);
+            elements.confirmResetBtn.addEventListener('click', resetUserModel);
         }
 
-        // Next trivia button handler
-        elements.nextTriviaBtn.onclick = showFeedback;
-
-        // Show feedback
-        function showFeedback() {
-            hideAllScreens();
+        // Toggle the side menu
+        function toggleMenu() {
+            elements.sideMenu.classList.toggle('open');
+            elements.menuOverlay.classList.toggle('hidden');
             
-            const currentQuestion = state.questions[state.currentQuestionIndex];
-            const trivia = currentQuestion.trivia;
-            
-            // Set feedback based on whether the answer was correct
-            if (state.isCorrect) {
-                elements.feedbackIcon.className = 'fas fa-check-circle text-6xl mb-4 text-green-400';
-                elements.feedbackTitle.textContent = 'Correct!';
-                elements.feedbackText.textContent = `You got it right! The answer is ${currentQuestion.correctAnswer}.`;
+            // Prevent scrolling when menu is open
+            if (elements.sideMenu.classList.contains('open')) {
+                document.body.style.overflow = 'hidden';
             } else {
-                elements.feedbackIcon.className = 'fas fa-times-circle text-6xl mb-4 text-red-400';
-                elements.feedbackTitle.textContent = 'Incorrect';
-                elements.feedbackText.textContent = `The correct answer was ${currentQuestion.correctAnswer}.`;
-            }
-            
-            // Set trivia fact if available
-            if (trivia && trivia.fact) {
-                elements.triviaFact.textContent = trivia.fact;
-            } else {
-                elements.triviaFact.textContent = "No additional information available for this question.";
-            }
-            
-            elements.feedbackScreen.classList.remove('hidden');
-        }
-
-        // Continue button handler
-        elements.continueBtn.onclick = nextQuestion;
-
-        // Move to next question or show results
-        function nextQuestion() {
-            state.currentQuestionIndex++;
-            
-            if (state.currentQuestionIndex < state.questions.length) {
-                showQuestion();
-            } else {
-                showResults();
+                document.body.style.overflow = '';
             }
         }
 
-        // Show results
-        function showResults() {
-            hideAllScreens();
-            
-            // Update score display
-            elements.score.textContent = state.score;
-            elements.totalQuestions.textContent = state.questions.length;
-            
-            // Calculate performance by genre
-            const genrePerformance = {};
-            state.sessionLog.forEach(log => {
-                if (!genrePerformance[log.genre]) {
-                    genrePerformance[log.genre] = { correct: 0, total: 0 };
-                }
-                
-                genrePerformance[log.genre].total++;
-                if (log.correct) {
-                    genrePerformance[log.genre].correct++;
-                }
-            });
-            
-            // Display performance stats
-            elements.performanceStats.innerHTML = '';
-            for (const [genre, stats] of Object.entries(genrePerformance)) {
-                const genreName = genres.find(g => g.id === genre)?.name || genre;
-                const percentage = Math.round((stats.correct / stats.total) * 100);
-                
-                const statDiv = document.createElement('div');
-                statDiv.className = 'bg-white/10 p-4 rounded-lg';
-                statDiv.innerHTML = `
-                    <h4 class="font-semibold mb-1">${genreName}</h4>
-                    <div class="w-full bg-gray-700 rounded-full h-2.5 mb-1">
-                        <div class="bg-gradient-to-r from-yellow-400 to-pink-500 h-2.5 rounded-full" style="width: ${percentage}%"></div>
-                    </div>
-                    <p class="text-sm">${stats.correct}/${stats.total} correct (${percentage}%)</p>
-                `;
-                elements.performanceStats.appendChild(statDiv);
-            }
-            
-            // If no genre stats, show a message
-            if (Object.keys(genrePerformance).length === 0) {
-                elements.performanceStats.innerHTML = '<p class="text-center text-purple-200">No genre performance data available</p>';
-            }
-            
-            elements.resultsScreen.classList.remove('hidden');
+        // Toggle quiz mode between random and personalized
+        function toggleQuizMode() {
+            state.personalizedMode = elements.quizModeToggle.checked;
+            saveUserModel();
+            updateQuizModeLabel();
         }
 
-        // Survey button handler
-        elements.submitSurveyBtn.onclick = showFinalScreen;
-
-        // Show survey screen
-        function showSurvey() {
-            hideAllScreens();
-            
-            // Create usability questions
-            elements.usabilityQuestions.innerHTML = '';
-            usabilityQuestions.forEach((question, index) => {
-                const questionDiv = document.createElement('div');
-                questionDiv.className = 'mb-6';
-                questionDiv.innerHTML = `
-                    <p class="mb-2">${question}</p>
-                    <div class="flex justify-between">
-                        ${[1, 2, 3, 4, 5].map(num => `
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="usability-${index}" value="${num}" class="form-radio h-5 w-5 text-purple-600" onclick="setUsabilityAnswer(${index}, ${num})">
-                                <span class="ml-2">${num}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                    <div class="flex justify-between text-xs mt-1">
-                        <span>Strongly disagree</span>
-                        <span>Strongly agree</span>
-                    </div>
-                `;
-                elements.usabilityQuestions.appendChild(questionDiv);
-            });
-            
-            // Reset SAM selections
-            document.querySelectorAll('.sam-scale').forEach(el => {
-                el.classList.remove('ring-2', 'ring-yellow-400');
-            });
-            
-            elements.surveyScreen.classList.remove('hidden');
+        // Show reset confirmation modal
+        function showResetConfirmation() {
+            elements.confirmModal.classList.remove('hidden');
         }
 
-        // Set usability answer
-        function setUsabilityAnswer(questionIndex, value) {
-            state.surveyAnswers.usability[questionIndex] = value;
+        // Hide reset confirmation modal
+        function hideResetConfirmation() {
+            elements.confirmModal.classList.add('hidden');
         }
 
-        // Select SAM scale
-        function selectSAM(dimension, value) {
-            state.surveyAnswers.emotions[dimension] = value;
-            
-            // Update UI
-            document.querySelectorAll(`.sam-scale[data-dimension="${dimension}"]`).forEach(el => {
-                el.classList.remove('ring-2', 'ring-yellow-400');
-            });
-            
-            const selected = document.querySelector(`.sam-scale[data-dimension="${dimension}"][data-value="${value}"]`);
-            if (selected) {
-                selected.classList.add('ring-2', 'ring-yellow-400');
-            }
-        }
-
-        // Show final screen
-        function showFinalScreen() {
-            hideAllScreens();
-            
-            // Check if all survey questions are answered
-            const usabilityAnswered = Object.keys(state.surveyAnswers.usability).length === usabilityQuestions.length;
-            const emotionsAnswered = state.surveyAnswers.emotions.valence && state.surveyAnswers.emotions.arousal;
-            
-            if (!usabilityAnswered || !emotionsAnswered) {
-                alert('Please complete all survey questions before submitting.');
-                return;
-            }
-            
-            // Display user profile
-            elements.userProfile.innerHTML = '';
-            
-            // Add genre stats
-            const sortedGenres = Object.entries(state.userModel.genreStats)
-                .sort((a, b) => (b[1].correct / b[1].attempts) - (a[1].correct / a[1].attempts));
-            
-            sortedGenres.forEach(([genreId, stats]) => {
-                if (stats.attempts > 0) {
-                    const genreName = genres.find(g => g.id === genreId)?.name || genreId;
-                    const percentage = Math.round((stats.correct / stats.attempts) * 100);
-                    
-                    const statDiv = document.createElement('div');
-                    statDiv.className = 'bg-white/10 p-4 rounded-lg';
-                    statDiv.innerHTML = `
-                        <h4 class="font-semibold mb-1">${genreName}</h4>
-                        <div class="w-full bg-gray-700 rounded-full h-2.5 mb-1">
-                            <div class="bg-gradient-to-r from-yellow-400 to-pink-500 h-2.5 rounded-full" style="width: ${percentage}%"></div>
-                        </div>
-                        <p class="text-sm">${stats.correct}/${stats.attempts} correct (${percentage}%)</p>
-                    `;
-                    elements.userProfile.appendChild(statDiv);
-                }
-            });
-            
-            // Add emotional state
-            const emotionDiv = document.createElement('div');
-            emotionDiv.className = 'bg-white/10 p-4 rounded-lg col-span-2';
-            emotionDiv.innerHTML = `
-                <h4 class="font-semibold mb-2">Your Emotional State</h4>
-                <p class="mb-1">Happiness: ${'★'.repeat(state.surveyAnswers.emotions.valence)}${'☆'.repeat(5 - state.surveyAnswers.emotions.valence)}</p>
-                <p>Energy: ${'★'.repeat(state.surveyAnswers.emotions.arousal)}${'☆'.repeat(5 - state.surveyAnswers.emotions.arousal)}</p>
-            `;
-            elements.userProfile.appendChild(emotionDiv);
-            
-            elements.finalScreen.classList.remove('hidden');
-        }
-
-        // Restart the quiz
-        function restartQuiz() {
-            // Reset state for new session
-            state.currentQuestionIndex = 0;
-            state.score = 0;
-            state.sessionLog = [];
-            state.surveyAnswers = {
-                usability: {},
-                emotions: {
-                    valence: null,
-                    arousal: null
-                }
+        // Reset user model
+        function resetUserModel() {
+            state.userModel = {
+                genres: {},
+                eras: {},
+                types: {},
+                totalQuestions: 0,
+                correctAnswers: 0
             };
-            
-            showModeScreen();
+            saveUserModel();
+            hideResetConfirmation();
         }
 
-        // Export data
-        function exportData() {
-            const data = {
-                userModel: state.userModel,
-                sessionLog: state.sessionLog,
-                surveyAnswers: state.surveyAnswers,
-                timestamp: new Date().toISOString()
-            };
+        // Export user model as JSON file
+        function exportUserModel() {
+            const dataStr = JSON.stringify(state.userModel, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
             
-            const dataStr = JSON.stringify(data, null, 2);
-            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-            
-            const exportFileDefaultName = `music-quiz-data-${new Date().toISOString().slice(0,10)}.json`;
+            const exportFileDefaultName = `GuessTheTrack_UserModel_${new Date().toISOString().slice(0, 10)}.json`;
             
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
@@ -1291,186 +584,350 @@
             linkElement.click();
         }
 
-        // Menu toggle functionality
-        elements.menuToggle.onclick = function() {
-            elements.menuContent.classList.toggle('hidden');
-        };
-
-        // Close menu when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.hamburger-menu')) {
-                elements.menuContent.classList.add('hidden');
+        // Start a new quiz
+        function startQuiz() {
+            // Reset quiz state
+            state.currentQuestionIndex = 0;
+            state.score = 0;
+            state.selectedAnswer = null;
+            state.isAnswerSubmitted = false;
+            state.sessionAnswers = [];
+            
+            // Select questions based on mode
+            if (state.personalizedMode) {
+                selectPersonalizedQuestions();
+            } else {
+                // Random mode - shuffle all questions and take first N
+                state.currentQuiz = [...quizData].sort(() => 0.5 - Math.random()).slice(0, state.quizLength);
             }
-        });
-
-        // Show developer screen
-        function showDeveloperScreen() {
-            hideAllScreens();
-            elements.menuContent.classList.add('hidden');
-            elements.developerScreen.classList.remove('hidden');
+            
+            // Update UI
+            elements.homeScreen.classList.add('hidden');
+            elements.resultsScreen.classList.add('hidden');
+            elements.quizScreen.classList.remove('hidden');
+            
+            // Show first question
+            showQuestion();
         }
 
-        // Show user screen
-        function showUserScreen() {
-            hideAllScreens();
-            elements.menuContent.classList.add('hidden');
-            elements.userScreen.classList.remove('hidden');
+        function updateQuizModeLabel() {
+            elements.quizModeLabel.textContent = state.personalizedMode ? 'Personalized Mode' : 'Random Mode';
+        }
+
+        // Select questions based on user's weak areas
+        function selectPersonalizedQuestions() {
+            // Calculate weights for each question based on user performance
+            const weightedQuestions = quizData.map(question => {
+                // Default weight for new categories
+                let weight = 5;
+                
+                // Adjust weight based on genre performance
+                const genreStats = state.userModel.genres[question.genre] || { attempts: 0, correct: 0 };
+                const genreAccuracy = genreStats.attempts > 0 ? (genreStats.correct / genreStats.attempts) : 0;
+                weight += (1 - genreAccuracy) * 10; // More weight to less accurate genres
+                
+                // Adjust weight based on era performance
+                const eraStats = state.userModel.eras[question.era] || { attempts: 0, correct: 0 };
+                const eraAccuracy = eraStats.attempts > 0 ? (eraStats.correct / eraStats.attempts) : 0;
+                weight += (1 - eraAccuracy) * 10; // More weight to less accurate eras
+                
+                // Adjust weight based on question type performance
+                const typeStats = state.userModel.types[question.type] || { attempts: 0, correct: 0 };
+                const typeAccuracy = typeStats.attempts > 0 ? (typeStats.correct / typeStats.attempts) : 0;
+                weight += (1 - typeAccuracy) * 5; // Some weight to less accurate types
+                
+                return { question, weight };
+            });
             
-            // Display user profile
-            elements.userProfileScreen.innerHTML = '';
+            // Sort by weight (higher weights first)
+            weightedQuestions.sort((a, b) => b.weight - a.weight);
             
-            // Add genre stats
-            const sortedGenres = Object.entries(state.userModel.genreStats)
-                .sort((a, b) => (b[1].correct / b[1].attempts) - (a[1].correct / a[1].attempts));
+            // Select questions - 70% from top weights (weak areas), 30% random
+            const weakAreaCount = Math.floor(state.quizLength * 0.7);
+            const randomCount = state.quizLength - weakAreaCount;
             
-            sortedGenres.forEach(([genreId, stats]) => {
-                if (stats.attempts > 0) {
-                    const genreName = genres.find(g => g.id === genreId)?.name || genreId;
-                    const percentage = Math.round((stats.correct / stats.attempts) * 100);
-                    
-                    const statDiv = document.createElement('div');
-                    statDiv.className = 'bg-white/10 p-4 rounded-lg';
-                    statDiv.innerHTML = `
-                        <h4 class="font-semibold mb-1">${genreName}</h4>
-                        <div class="w-full bg-gray-700 rounded-full h-2.5 mb-1">
-                            <div class="bg-gradient-to-r from-yellow-400 to-pink-500 h-2.5 rounded-full" style="width: ${percentage}%"></div>
-                        </div>
-                        <p class="text-sm">${stats.correct}/${stats.attempts} correct (${percentage}%)</p>
-                    `;
-                    elements.userProfileScreen.appendChild(statDiv);
+            // Take top weighted questions
+            const selectedQuestions = weightedQuestions.slice(0, weakAreaCount).map(item => item.question);
+            
+            // Add some random questions from the rest
+            const remainingQuestions = weightedQuestions.slice(weakAreaCount).map(item => item.question);
+            const randomQuestions = [...remainingQuestions].sort(() => 0.5 - Math.random()).slice(0, randomCount);
+            
+            state.currentQuiz = [...selectedQuestions, ...randomQuestions].sort(() => 0.5 - Math.random());
+        }
+
+        // Display the current question
+        function showQuestion() {
+            const currentQuestion = state.currentQuiz[state.currentQuestionIndex];
+            
+            // Update question counter
+            elements.currentQuestion.textContent = state.currentQuestionIndex + 1;
+            elements.totalQuestions.textContent = state.quizLength;
+            elements.quizProgress.style.width = `${(state.currentQuestionIndex / state.quizLength) * 100}%`;
+            
+            // Reset answer state
+            state.selectedAnswer = null;
+            state.isAnswerSubmitted = false;
+            
+            // Update question type badge
+            elements.questionTypeBadge.className = `inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 ${
+                currentQuestion.type === 'audio' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+            }`;
+            elements.questionTypeBadge.innerHTML = `<i class="fas fa-${
+                currentQuestion.type === 'audio' ? 'music' : 'book'
+            } mr-1"></i> ${currentQuestion.type === 'audio' ? 'Audio Clip' : 'Context Question'}`;
+            
+            // Clear previous content
+            elements.questionContent.innerHTML = '';
+            elements.answerOptions.innerHTML = '';
+            elements.feedbackSection.classList.add('hidden');
+            elements.submitAnswerBtn.classList.remove('hidden');
+            elements.nextQuestionBtn.classList.add('hidden');
+            
+            // Display question content
+            const questionEl = document.createElement('p');
+            questionEl.className = 'text-lg font-medium text-gray-800 mb-4';
+            questionEl.textContent = currentQuestion.question;
+            elements.questionContent.appendChild(questionEl);
+            
+            // Add audio player if it's an audio question
+            if (currentQuestion.type === 'audio') {
+                const audioContainer = document.createElement('div');
+                audioContainer.className = 'mb-6';
+                
+                const audioEl = document.createElement('audio');
+                audioEl.className = 'w-full mb-2';
+                audioEl.controls = true;
+                audioEl.src = currentQuestion.audioSrc;
+                
+                const audioControls = document.createElement('div');
+                audioControls.className = 'flex items-center justify-center space-x-4';
+                
+                const playBtn = document.createElement('button');
+                playBtn.className = 'bg-indigo-600 text-white p-3 rounded-full btn-press';
+                playBtn.innerHTML = '<i class="fas fa-play"></i>';
+                playBtn.addEventListener('click', () => {
+                    audioEl.play();
+                });
+                
+                audioControls.appendChild(playBtn);
+                audioContainer.appendChild(audioEl);
+                audioContainer.appendChild(audioControls);
+                elements.questionContent.appendChild(audioContainer);
+            }
+            
+            // Add answer options
+            currentQuestion.options.forEach((option, index) => {
+                const optionContainer = document.createElement('div');
+                optionContainer.className = 'flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition';
+                optionContainer.dataset.answer = option;
+                
+                const radioBtn = document.createElement('div');
+                radioBtn.className = 'w-5 h-5 rounded-full border-2 border-gray-300 mr-3 flex-shrink-0';
+                
+                const optionText = document.createElement('span');
+                optionText.className = 'text-gray-700';
+                optionText.textContent = option;
+                
+                optionContainer.appendChild(radioBtn);
+                optionContainer.appendChild(optionText);
+                
+                optionContainer.addEventListener('click', () => selectAnswer(optionContainer, option));
+                elements.answerOptions.appendChild(optionContainer);
+            });
+        }
+
+        // Handle answer selection
+        function selectAnswer(container, answer) {
+            // Deselect all options
+            document.querySelectorAll('#answerOptions > div').forEach(opt => {
+                opt.classList.remove('bg-indigo-50', 'border-indigo-300');
+                opt.querySelector('div').className = 'w-5 h-5 rounded-full border-2 border-gray-300 mr-3 flex-shrink-0';
+            });
+            
+            // Select the clicked option
+            container.classList.add('bg-indigo-50', 'border-indigo-300');
+            container.querySelector('div').className = 'w-5 h-5 rounded-full border-2 border-indigo-500 mr-3 flex-shrink-0 bg-indigo-100 flex items-center justify-center';
+            container.querySelector('div').innerHTML = '<div class="w-2 h-2 rounded-full bg-indigo-600"></div>';
+            
+            state.selectedAnswer = answer;
+        }
+
+        // Submit the selected answer
+        function submitAnswer() {
+            if (!state.selectedAnswer) {
+                alert('Please select an answer before submitting.');
+                return;
+            }
+            
+            const currentQuestion = state.currentQuiz[state.currentQuestionIndex];
+            const isCorrect = state.selectedAnswer === currentQuestion.correctAnswer;
+            
+            // Update score
+            if (isCorrect) {
+                state.score++;
+            }
+            
+            // Track this answer in session
+            state.sessionAnswers.push({
+                question: currentQuestion.question,
+                selectedAnswer: state.selectedAnswer,
+                correctAnswer: currentQuestion.correctAnswer,
+                isCorrect,
+                genre: currentQuestion.genre,
+                era: currentQuestion.era,
+                type: currentQuestion.type
+            });
+            
+            // Update user model
+            updateUserModelWithAnswer(currentQuestion, isCorrect);
+            
+            // Show feedback
+            showFeedback(currentQuestion, isCorrect);
+            
+            state.isAnswerSubmitted = true;
+            elements.submitAnswerBtn.classList.add('hidden');
+            
+            // Show next button if not last question
+            if (state.currentQuestionIndex < state.quizLength - 1) {
+                elements.nextQuestionBtn.classList.remove('hidden');
+            } else {
+                // Last question - show finish button
+                elements.nextQuestionBtn.classList.add('hidden');
+                setTimeout(showResults, 1000);
+            }
+        }
+
+        // Update user model with answer data
+        function updateUserModelWithAnswer(question, isCorrect) {
+            // Update genre stats
+            if (!state.userModel.genres[question.genre]) {
+                state.userModel.genres[question.genre] = { attempts: 0, correct: 0 };
+            }
+            state.userModel.genres[question.genre].attempts++;
+            if (isCorrect) state.userModel.genres[question.genre].correct++;
+            
+            // Update era stats
+            if (!state.userModel.eras[question.era]) {
+                state.userModel.eras[question.era] = { attempts: 0, correct: 0 };
+            }
+            state.userModel.eras[question.era].attempts++;
+            if (isCorrect) state.userModel.eras[question.era].correct++;
+            
+            // Update type stats
+            if (!state.userModel.types[question.type]) {
+                state.userModel.types[question.type] = { attempts: 0, correct: 0 };
+            }
+            state.userModel.types[question.type].attempts++;
+            if (isCorrect) state.userModel.types[question.type].correct++;
+            
+            // Update overall stats
+            state.userModel.totalQuestions++;
+            if (isCorrect) state.userModel.correctAnswers++;
+            
+            saveUserModel();
+        }
+
+        // Show feedback for the submitted answer
+        function showFeedback(question, isCorrect) {
+            elements.feedbackSection.classList.remove('hidden');
+            elements.feedbackSection.className = `p-4 rounded-lg mb-6 ${
+                isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`;
+            
+            let feedbackHTML = `
+                <div class="font-bold mb-2">
+                    <i class="fas fa-${isCorrect ? 'check-circle' : 'times-circle'} mr-2"></i>
+                    ${isCorrect ? 'Correct!' : 'Incorrect'}
+                </div>
+                <div class="mb-2">${question.explanation}</div>
+            `;
+            
+            if (!isCorrect) {
+                feedbackHTML += `<div class="font-medium">Correct answer: ${question.correctAnswer}</div>`;
+            }
+            
+            elements.feedbackSection.innerHTML = feedbackHTML;
+        }
+
+        // Move to the next question
+        function nextQuestion() {
+            state.currentQuestionIndex++;
+            showQuestion();
+        }
+
+        // Show quiz results
+        function showResults() {
+            // Calculate stats
+            const accuracy = Math.round((state.score / state.quizLength) * 100);
+            
+            // Calculate category accuracies
+            const genreStats = calculateCategoryAccuracy(state.sessionAnswers, 'genre');
+            const eraStats = calculateCategoryAccuracy(state.sessionAnswers, 'era');
+            const typeStats = calculateCategoryAccuracy(state.sessionAnswers, 'type');
+            
+            // Update UI
+            elements.totalScore.textContent = `${state.score}/${state.quizLength}`;
+            elements.accuracyRate.textContent = `${accuracy}%`;
+            
+            elements.genreAccuracy.textContent = `${genreStats.accuracy}%`;
+            elements.eraAccuracy.textContent = `${eraStats.accuracy}%`;
+            elements.typeAccuracy.textContent = `${typeStats.accuracy}%`;
+            
+            elements.genreProgress.style.width = `${genreStats.accuracy}%`;
+            elements.eraProgress.style.width = `${eraStats.accuracy}%`;
+            elements.typeProgress.style.width = `${typeStats.accuracy}%`;
+            
+            // Switch screens
+            elements.quizScreen.classList.add('hidden');
+            elements.resultsScreen.classList.remove('hidden');
+        }
+
+        // Calculate accuracy for a specific category
+        function calculateCategoryAnswers(sessionAnswers, category) {
+            const categoryAnswers = {};
+            
+            sessionAnswers.forEach(answer => {
+                const key = answer[category];
+                if (!categoryAnswers[key]) {
+                    categoryAnswers[key] = { correct: 0, total: 0 };
+                }
+                
+                categoryAnswers[key].total++;
+                if (answer.isCorrect) {
+                    categoryAnswers[key].correct++;
                 }
             });
-
-            // If no user data, show a message
-            if (sortedGenres.length === 0 || !sortedGenres.some(([_, stats]) => stats.attempts > 0)) {
-                const noDataDiv = document.createElement('div');
-                noDataDiv.className = 'col-span-2 text-center p-4';
-                noDataDiv.innerHTML = `
-                    <p class="text-purple-200">No quiz data available yet.</p>
-                    <p class="text-purple-300 mt-2">Complete a quiz to see your stats!</p>
-                `;
-                elements.userProfileScreen.appendChild(noDataDiv);
-            }
+            
+            return categoryAnswers;
         }
 
-        // Reset user data
-        function resetData() {
-            if (confirm("Are you sure you want to reset all your data? This cannot be undone.")) {
-                // Clear localStorage
-                localStorage.clear();
-
-                // Reset app state
-                state = {
-                    mode: null,
-                    selectedGenre: null,
-                    currentRound: 0,
-                    totalRounds: 5,
-                    score: 0,
-                    questions: [],
-                    currentQuestionIndex: 0,
-                    timer: null,
-                    timeLeft: 15,
-                    userAnswer: null,
-                    isCorrect: false,
-                    userModel: {
-                        genreStats: {},
-                        incorrectTopics: [],
-                        preferredGenres: []
-                    },
-                    surveyAnswers: {
-                        usability: {},
-                        emotions: {
-                            valence: null,
-                            arousal: null
-                        }
-                    },
-                    sessionLog: []
-                };
-
-                // Reinitialize genres in user model
-                genres.forEach(genre => {
-                    state.userModel.genreStats[genre.id] = { attempts: 0, correct: 0 };
-                });
-
-                // Restart the app
-                alert('Data has been reset successfully.');
-                showModeScreen();
-            }
-        }
-
-        // Update mode display in developer screen
-        function updateModeDisplay() {
-            if (state.mode === 'random') {
-                elements.currentMode.textContent = 'Random';
-                elements.currentMode.className = 'font-semibold text-yellow-400';
-            } else if (state.mode === 'personalized') {
-                elements.currentMode.textContent = 'Personalized';
-                elements.currentMode.className = 'font-semibold text-pink-400';
-            } else {
-                elements.currentMode.textContent = 'None';
-                elements.currentMode.className = 'font-semibold text-gray-400';
+        // Calculate overall accuracy for a category
+        function calculateCategoryAccuracy(sessionAnswers, category) {
+            const categoryAnswers = calculateCategoryAnswers(sessionAnswers, category);
+            let totalCorrect = 0;
+            let totalQuestions = 0;
+            
+            for (const [key, stats] of Object.entries(categoryAnswers)) {
+                totalCorrect += stats.correct;
+                totalQuestions += stats.total;
             }
             
-            // Update debug info
-            updateDebugInfo();
-        }
-
-        // Update debug info in developer screen
-        function updateDebugInfo() {
-            const debugData = {
-                mode: state.mode,
-                selectedGenre: state.selectedGenre,
-                score: state.score,
-                currentQuestionIndex: state.currentQuestionIndex,
-                totalQuestions: state.questions.length,
-                genreStats: state.userModel.genreStats
+            const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+            
+            return {
+                accuracy,
+                categoryAnswers
             };
-            
-            elements.debugInfo.textContent = JSON.stringify(debugData, null, 2);
         }
 
-        // Set up event handlers for the mode buttons
-        elements.setRandomMode.onclick = function() {
-            state.mode = 'random';
-            updateModeDisplay();
-        };
-
-        elements.setPersonalizedMode.onclick = function() {
-            state.mode = 'personalized';
-            updateModeDisplay();
-        };
-
-        // Modify showDeveloperScreen to update the mode display
-        function showDeveloperScreen() {
-            hideAllScreens();
-            elements.menuContent.classList.add('hidden');
-            updateModeDisplay();
-            elements.developerScreen.classList.remove('hidden');
+        // Update UI based on app state
+        function updateUI() {
+            // Nothing needed here currently as all UI updates are handled in specific functions
         }
 
-        // Modify selectMode to also update the mode display
-        function selectMode(mode) {
-            state.mode = mode;
-            updateModeDisplay();
-            showGenreScreen();
-        }
-
-        // Update the hideAllScreens function to include the new screens
-        function hideAllScreens() {
-            elements.modeScreen.classList.add('hidden');
-            elements.genreScreen.classList.add('hidden');
-            elements.quizScreen.classList.add('hidden');
-            elements.triviaScreen.classList.add('hidden');
-            elements.feedbackScreen.classList.add('hidden');
-            elements.resultsScreen.classList.add('hidden');
-            elements.surveyScreen.classList.add('hidden');
-            elements.finalScreen.classList.add('hidden');
-            elements.developerScreen.classList.add('hidden');
-            elements.userScreen.classList.add('hidden');
-        }
-
-        // Initialize the app when the page loads
-        window.onload = init;
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
