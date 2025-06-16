@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typing Test</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="top-bar">
+    <button class="menu-button" onclick="toggleMenu()">☰</button>
+    <div class="site-name" onclick="goHome()">Typing Master</div>
+  </div>
+  <div class="menu" id="dropdown-menu">
+    <a href="user-profile.html">User Profile</a>
+    <a href="developer-screen.html">Developer Screen</a>
+  </div>
+
+  <div class="container" id="test-screen">
+    <div id="display-paragraph" class="paragraph"></div>
+    <div id="keyboard" class="keyboard"></div>
+    <div id="stats-display" class="stats-display">
+      <span>Time: <span id="timer">0</span>s</span>
+      <span>WPM: <span id="wpm">0</span></span>
+      <span>Accuracy: <span id="accuracy">100%</span></span>
+    </div>
+    <div id="stats"></div>
+  </div>
+
+  <script src="personalization.js"></script>
+  <script>
+    // --- WORD SELECTION MODE TOGGLE ---
+    function getUsePersonalized() {
+      // Default to true if not set
+      const val = localStorage.getItem('usePersonalized');
+      return val === null ? true : val === 'true';
+    }
+
+    // ---     // ...existing code...
+    function loadWords(callback) {
+      fetch('public/words.csv') // <-- Change this line
+        .then(response => response.text())
+        .then(text => {
+          // Split CSV by comma, trim whitespace
+          WORDS = text.split(',').map(w => w.trim()).filter(Boolean);
+          if (callback) callback();
+        });
+    }
+    // ...existing code... LOADING AND TEST WORDS SELECTION ---
+    loadWords(() => {
+      const drills = personalizeDrills();
+      let allWords = drills.mixedDrillWords.length > 0 ? drills.mixedDrillWords : ["The quick brown fox jumps over the lazy dog."];
+      let randomWords = WORDS.length > 0 ? WORDS : ["The quick brown fox jumps over the lazy dog."];
+
+      function normalizeWords(words) {
+        if (words.length === 1 && typeof words[0] === "string" && words[0].includes(" ")) {
+          return words[0].split(/\s+/);
+        }
+        return words;
+      }
+
+      function getRandomWords(words, min = 20, max = 30) {
+        const count = Math.min(words.length, Math.floor(Math.random() * (max - min + 1)) + min);
+        const shuffled = words.slice().sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
+      }
+
+      function getTestWords() {
+        if (getUsePersonalized()) {
+          return getRandomWords(normalizeWords(allWords));
+        } else {
+          return getRandomWords(normalizeWords(randomWords));
+        }
+      }
+
+      // --- rest of your code, replace selectedWords and paragraphText assignment ---
+      let selectedWords = getTestWords();
+      let paragraphText = selectedWords.join(' ') + '.';
+
+      const displayParagraph = document.getElementById('display-paragraph');
+      const keyboard = document.getElementById('keyboard');
+      const wpmDisplay = document.getElementById('wpm');
+      const accuracyDisplay = document.getElementById('accuracy');
+      const testScreen = document.getElementById('test-screen');
+      let startTime;
+      let currentIndex = 0;
+      let totalTyped = 0;
+      let correctTyped = 0;
+      let timerInterval;
+      const timerDisplay = document.getElementById('timer');
+
+      const keyboardLayout = [
+        ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', 'Backspace'],
+        ['Tab', 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']', '\\'],
+        ['Caps Lock', 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';', '\'', 'Enter'],
+        ['Shift', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/', 'Shift'],
+        ['Ctrl', 'Win', 'Alt', ' ', 'Alt', 'Win', 'Menu', 'Ctrl']
+      ];
+
+      function renderParagraph() {
+        displayParagraph.innerHTML = '';
+        for (let i = 0; i < paragraphText.length; i++) {
+          const span = document.createElement('span');
+          span.textContent = paragraphText[i];
+          span.className = 'char';
+          if(i === 0) span.classList.add('current');
+          displayParagraph.appendChild(span);
+        }
+      }
+
+      function renderKeyboard() {
+        keyboardLayout.forEach(row => {
+          const rowDiv = document.createElement('div');
+          rowDiv.className = 'keyboard-row';
+          row.forEach(key => {
+            const keyDiv = document.createElement('div');
+            keyDiv.className = 'key';
+            if (['Backspace', 'Enter', 'Shift', 'Caps Lock', 'Tab'].includes(key)) keyDiv.classList.add('xwide');
+            if (key === ' ') {
+              keyDiv.classList.add('space', 'x4');
+              keyDiv.id = 'key-space';
+              keyDiv.textContent = '';
+            } else {
+              if (['Ctrl', 'Alt', 'Win', 'Menu'].includes(key)) keyDiv.classList.add('wide');
+              keyDiv.id = `key-${key.trim().toLowerCase().replace(/\s+/g, '-')}`;
+              keyDiv.textContent = key;
+            }
+            rowDiv.appendChild(keyDiv);
+          });
+          keyboard.appendChild(rowDiv);
+        });
+      }
+
+      function clearKeyHighlights() {
+        document.querySelectorAll('.key').forEach(k => k.classList.remove('highlight'));
+      }
+
+      function highlightNextKey() {
+        const nextChar = paragraphText[currentIndex];
+        clearKeyHighlights();
+        if (!nextChar) return;
+        let keyId = nextChar === ' ' ? 'key-space' : `key-${nextChar.toLowerCase().replace(/\s+/g, '-')}`;
+        const key = document.getElementById(keyId);
+        if (key) key.classList.add('highlight');
+      }
+
+      function updateStats() {
+        const elapsed = (new Date() - startTime) / 60000;
+        const words = paragraphText.substring(0, currentIndex).trim().split(/\s+/).length;
+        const wpm = elapsed > 0 ? (words / elapsed) : 0;
+        const accuracy = totalTyped > 0 ? (correctTyped / totalTyped) * 100 : 100;
+        wpmDisplay.textContent = Math.round(wpm) || 0;
+        accuracyDisplay.textContent = accuracy.toFixed(0) + '%';
+      }
+
+      function startTimer() {
+        let seconds = 0;
+        timerDisplay.textContent = seconds;
+        timerInterval = setInterval(() => {
+          seconds++;
+          timerDisplay.textContent = seconds;
+        }, 1000);
+      }
+
+      function stopTimer() {
+        clearInterval(timerInterval);
+      }
+
+      function finishTest() {
+        stopTimer();
+        const wpm = wpmDisplay.textContent;
+        const accuracy = accuracyDisplay.textContent;
+        const time = timerDisplay.textContent;
+        window.location.href = `result.html?wpm=${encodeURIComponent(wpm)}&accuracy=${encodeURIComponent(accuracy)}&time=${encodeURIComponent(time)}`;
+      }
+
+      // --- USER MODEL IMPLEMENTATION ---
+
+      function loadLetterStats() {
+        return JSON.parse(localStorage.getItem('letterStats') || '{}');
+      }
+      function saveLetterStats(stats) {
+        localStorage.setItem('letterStats', JSON.stringify(stats));
+      }
+
+      function loadSequenceStats() {
+        return JSON.parse(localStorage.getItem('sequenceStats') || '{}');
+      }
+      function saveSequenceStats(stats) {
+        localStorage.setItem('sequenceStats', JSON.stringify(stats));
+      }
+
+      let letterStats = loadLetterStats();
+      let sequenceStats = loadSequenceStats();
+
+      function updateLetterStats(letter, correct) {
+        if (!letter.match(/[a-zA-Z]/)) return;
+        letter = letter.toLowerCase();
+        if (!letterStats[letter]) letterStats[letter] = { correct: 0, total: 0 };
+        if (correct) letterStats[letter].correct++;
+        letterStats[letter].total++;
+        saveLetterStats(letterStats);
+      }
+
+      function updateSequenceStats(seq, correct) {
+        if (!seq.match(/^[a-zA-Z]{2}$/)) return;
+        seq = seq.toLowerCase();
+        if (!sequenceStats[seq]) sequenceStats[seq] = { correct: 0, total: 0 };
+        if (correct) sequenceStats[seq].correct++;
+        sequenceStats[seq].total++;
+        saveSequenceStats(sequenceStats);
+      }
+
+      let prevChar = null;
+
+      document.addEventListener('keydown', (e) => {
+        if (!startTime) {
+          startTime = new Date();
+          startTimer();
+        }
+        if (e.key.length > 1 && !['Backspace', ' '].includes(e.key)) return;
+        if (["Tab", "Backspace"].includes(e.key)) e.preventDefault();
+
+        let keyId = e.key === " " ? "key-space" : `key-${e.key.toLowerCase().replace(/\s/, '-')}`;
+        const key = document.getElementById(keyId);
+        if (key) key.classList.add('pressed');
+
+        const chars = document.querySelectorAll('.char');
+        const expected = paragraphText[currentIndex];
+
+        let isCorrect = e.key === expected;
+        updateLetterStats(expected, isCorrect);
+        if (prevChar !== null) {
+          updateSequenceStats(prevChar + expected, isCorrect);
+        }
+        prevChar = expected;
+
+        if (isCorrect) {
+          chars[currentIndex].classList.remove('current');
+          chars[currentIndex].classList.add('correct');
+          currentIndex++;
+          correctTyped++;
+          totalTyped++;
+          if (currentIndex < chars.length) {
+            chars[currentIndex].classList.add('current');
+          } else {
+            updateStats();
+            finishTest();
+            return;
+          }
+        } else {
+          if (e.key.length === 1) {
+            chars[currentIndex].classList.add('wrong');
+            totalTyped++;
+          }
+        }
+
+        highlightNextKey();
+        updateStats();
+      });
+
+      document.addEventListener('keyup', (e) => {
+        let keyId = e.key === " " ? "key-space" : `key-${e.key.toLowerCase().replace(/\s/, '-')}`;
+        const key = document.getElementById(keyId);
+        if (key) key.classList.remove('pressed');
+      });
+
+      function toggleMenu() {
+        const menu = document.getElementById('dropdown-menu');
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+      }
+
+      function goHome() {
+        window.location.href = 'index.html';
+      }
+
+      renderParagraph();
+      renderKeyboard();
+      highlightNextKey();
+    });
+  </script>
+</body>
+</html>

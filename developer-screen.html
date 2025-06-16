@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Developer Screen</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="top-bar">
+    <button class="menu-button" onclick="toggleMenu()">☰</button>
+    <div class="site-name" onclick="goHome()">Typing Master</div>
+  </div>
+  <div class="menu" id="dropdown-menu">
+    <a href="user-profile.html">User Profile</a>
+    <a href="developer-screen.html">Developer Screen</a>
+  </div>
+
+  <div class="container">
+    <h1>Developer Screen</h1>
+    <div style="margin: 2rem 0;">
+      <label for="toggle-personalized" style="font-size:1.2rem;">
+        <input type="checkbox" id="toggle-personalized" checked>
+        Use Personalized Drill Selection
+      </label>
+      <p style="color:#ccc; margin-top:0.5rem;">
+        Toggle between personalized drills (based on user stats) and random word selection for the typing test.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function toggleMenu() {
+      const menu = document.getElementById('dropdown-menu');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+    function goHome() {
+      window.location.href = 'index.html';
+    }
+
+    // Save toggle state to localStorage so typing-test.html can read it
+    const toggle = document.getElementById('toggle-personalized');
+    // Load saved state
+    const saved = localStorage.getItem('usePersonalized');
+    if (saved !== null) toggle.checked = saved === 'true';
+
+    toggle.addEventListener('change', () => {
+      localStorage.setItem('usePersonalized', toggle.checked);
+    });
+  </script>
+</body>

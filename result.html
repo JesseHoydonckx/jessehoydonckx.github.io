@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Typing Test Results</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="top-bar">
+    <button class="menu-button" onclick="toggleMenu()">☰</button>
+    <div class="site-name" onclick="goHome()">Typing Master</div>
+  </div>
+  <div class="menu" id="dropdown-menu">
+    <a href="user-profile.html">User Profile</a>
+    <a href="developer-screen.html">Developer Screen</a>
+  </div>
+  <div class="container" id="result-screen">
+    <h2>Test Complete</h2>
+    <p>WPM: <span id="final-wpm"></span></p>
+    <p>Accuracy: <span id="final-accuracy"></span></p>
+    <p>Time: <span id="final-time"></span>s</p>
+    <button onclick="restartTest()">Redo Test</button>
+    <button onclick="goHome()">Return Home</button>
+  </div>
+  <script>
+    function getQueryParam(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name) || '';
+    }
+    document.getElementById('final-wpm').textContent = getQueryParam('wpm');
+    document.getElementById('final-accuracy').textContent = getQueryParam('accuracy');
+    document.getElementById('final-time').textContent = getQueryParam('time');
+
+    function restartTest() {
+      window.location.href = 'typing-test.html';
+    }
+    function goHome() {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
