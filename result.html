@@ -34,6 +34,12 @@
     function restartTest() {
       window.location.href = 'typing-test.html';
     }
+  
+    function toggleMenu() {
+      const menu = document.getElementById('dropdown-menu');
+      menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    }
+
     function goHome() {
       window.location.href = 'index.html';
     }
