@@ -26,6 +26,10 @@
         Toggle between personalized drills (based on user stats) and random word selection for the typing test.
       </p>
     </div>
+    <!-- Add Clear Profile Button -->
+    <button id="clear-profile-btn" style="margin-top:2rem;">
+      Clear User Profile & Reset Mode
+    </button>
   </div>
 
   <script>
@@ -46,5 +50,14 @@
     toggle.addEventListener('change', () => {
       localStorage.setItem('usePersonalized', toggle.checked);
     });
+
+    // Clear userprofile and reset mode to personalized
+    document.getElementById('clear-profile-btn').addEventListener('click', () => {
+      localStorage.removeItem('userprofile');
+      localStorage.setItem('usePersonalized', 'true');
+      toggle.checked = true;
+      alert('User profile cleared and mode reset to personalized.');
+    });
   </script>
 </body>
+</html>
