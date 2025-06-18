@@ -65,12 +65,9 @@
         return shuffled.slice(0, count);
       }
 
+      // --- Always use personalized drills
       function getTestWords() {
-        if (getUsePersonalized()) {
-          return getRandomWords(normalizeWords(allWords));
-        } else {
-          return getRandomWords(normalizeWords(randomWords));
-        }
+        return getRandomWords(normalizeWords(allWords));
       }
 
       // --- rest of your code, replace selectedWords and paragraphText assignment ---

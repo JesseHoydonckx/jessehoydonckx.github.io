@@ -18,15 +18,10 @@
   <div class="container">
     <h1>Developer Screen</h1>
     <div style="margin: 2rem 0;">
-      <label for="toggle-personalized" style="font-size:1.2rem;">
-        <input type="checkbox" id="toggle-personalized" checked>
-        Use Personalized Drill Selection
-      </label>
-      <p style="color:#ccc; margin-top:0.5rem;">
-        Toggle between personalized drills (based on user stats) and random word selection for the typing test.
+      <p id="current-mode" style="font-size:1.2rem; color:#ccc;">
+        Current Mode: Random Drill Selection
       </p>
     </div>
-    <!-- Add Clear Profile Button -->
     <button id="clear-profile-btn" style="margin-top:2rem;">
       Clear User Profile & Reset Mode
     </button>
@@ -40,23 +35,9 @@
     function goHome() {
       window.location.href = 'index.html';
     }
-
-    // Save toggle state to localStorage so typing-test.html can read it
-    const toggle = document.getElementById('toggle-personalized');
-    // Load saved state
-    const saved = localStorage.getItem('usePersonalized');
-    if (saved !== null) toggle.checked = saved === 'true';
-
-    toggle.addEventListener('change', () => {
-      localStorage.setItem('usePersonalized', toggle.checked);
-    });
-
-    // Clear userprofile and reset mode to personalized
     document.getElementById('clear-profile-btn').addEventListener('click', () => {
       localStorage.removeItem('userprofile');
-      localStorage.setItem('usePersonalized', 'true');
-      toggle.checked = true;
-      alert('User profile cleared and mode reset to personalized.');
+      alert('User profile cleared.');
     });
   </script>
 </body>

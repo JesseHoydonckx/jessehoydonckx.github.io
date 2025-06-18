@@ -12,8 +12,7 @@
     <div class="site-name" onclick="goHome()">Typing Master</div>
   </div>
   <div class="menu" id="dropdown-menu">
-    <a href="user-profile.html">User Profile</a>
-    <a href="developer-screen.html">Developer Screen</a>
+    <!-- Removed User Profile and Developer Screen links -->
   </div>
 
   <div class="container" id="test-screen">
@@ -27,30 +26,25 @@
     <div id="stats"></div>
   </div>
 
-  <script src="personalization.js"></script>
   <script>
-    // --- WORD SELECTION MODE TOGGLE ---
-    function getUsePersonalized() {
-      // Default to true if not set
-      const val = localStorage.getItem('usePersonalized');
-      return val === null ? true : val === 'true';
-    }
-
-    // ---     // ...existing code...
+    // --- Load Words from CSV ---
+    let WORDS = [];
     function loadWords(callback) {
-      fetch('public/words.csv') // <-- Change this line
+      fetch('public/words.csv')
         .then(response => response.text())
         .then(text => {
-          // Split CSV by comma, trim whitespace
           WORDS = text.split(',').map(w => w.trim()).filter(Boolean);
           if (callback) callback();
         });
     }
-    // ...existing code... LOADING AND TEST WORDS SELECTION ---
+
     loadWords(() => {
-      const drills = personalizeDrills();
-      let allWords = drills.mixedDrillWords.length > 0 ? drills.mixedDrillWords : ["The quick brown fox jumps over the lazy dog."];
-      let randomWords = WORDS.length > 0 ? WORDS : ["The quick brown fox jumps over the lazy dog."];
+      // Always use random words
+      function getRandomWords(words, min = 20, max = 30) {
+        const count = Math.min(words.length, Math.floor(Math.random() * (max - min + 1)) + min);
+        const shuffled = words.slice().sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
+      }
 
       function normalizeWords(words) {
         if (words.length === 1 && typeof words[0] === "string" && words[0].includes(" ")) {
@@ -59,22 +53,7 @@
         return words;
       }
 
-      function getRandomWords(words, min = 20, max = 30) {
-        const count = Math.min(words.length, Math.floor(Math.random() * (max - min + 1)) + min);
-        const shuffled = words.slice().sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, count);
-      }
-
-      function getTestWords() {
-        if (getUsePersonalized()) {
-          return getRandomWords(normalizeWords(allWords));
-        } else {
-          return getRandomWords(normalizeWords(randomWords));
-        }
-      }
-
-      // --- rest of your code, replace selectedWords and paragraphText assignment ---
-      let selectedWords = getTestWords();
+      let selectedWords = getRandomWords(normalizeWords(WORDS.length > 0 ? WORDS : ["The quick brown fox jumps over the lazy dog."]));
       let paragraphText = selectedWords.join(' ') + '.';
 
       const displayParagraph = document.getElementById('display-paragraph');
@@ -174,45 +153,6 @@
         window.location.href = `result.html?wpm=${encodeURIComponent(wpm)}&accuracy=${encodeURIComponent(accuracy)}&time=${encodeURIComponent(time)}`;
       }
 
-      // --- USER MODEL IMPLEMENTATION ---
-
-      function loadLetterStats() {
-        return JSON.parse(localStorage.getItem('letterStats') || '{}');
-      }
-      function saveLetterStats(stats) {
-        localStorage.setItem('letterStats', JSON.stringify(stats));
-      }
-
-      function loadSequenceStats() {
-        return JSON.parse(localStorage.getItem('sequenceStats') || '{}');
-      }
-      function saveSequenceStats(stats) {
-        localStorage.setItem('sequenceStats', JSON.stringify(stats));
-      }
-
-      let letterStats = loadLetterStats();
-      let sequenceStats = loadSequenceStats();
-
-      function updateLetterStats(letter, correct) {
-        if (!letter.match(/[a-zA-Z]/)) return;
-        letter = letter.toLowerCase();
-        if (!letterStats[letter]) letterStats[letter] = { correct: 0, total: 0 };
-        if (correct) letterStats[letter].correct++;
-        letterStats[letter].total++;
-        saveLetterStats(letterStats);
-      }
-
-      function updateSequenceStats(seq, correct) {
-        if (!seq.match(/^[a-zA-Z]{2}$/)) return;
-        seq = seq.toLowerCase();
-        if (!sequenceStats[seq]) sequenceStats[seq] = { correct: 0, total: 0 };
-        if (correct) sequenceStats[seq].correct++;
-        sequenceStats[seq].total++;
-        saveSequenceStats(sequenceStats);
-      }
-
-      let prevChar = null;
-
       document.addEventListener('keydown', (e) => {
         if (!startTime) {
           startTime = new Date();
@@ -229,11 +169,6 @@
         const expected = paragraphText[currentIndex];
 
         let isCorrect = e.key === expected;
-        updateLetterStats(expected, isCorrect);
-        if (prevChar !== null) {
-          updateSequenceStats(prevChar + expected, isCorrect);
-        }
-        prevChar = expected;
 
         if (isCorrect) {
           chars[currentIndex].classList.remove('current');
